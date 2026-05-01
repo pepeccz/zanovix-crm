@@ -1,0 +1,53 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
+import { GlobalSearchProvider } from "@/contexts/global-search-context";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
+import { AppBreadcrumb } from "@/components/layout/app-breadcrumb";
+
+export default function AuthenticatedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname + window.location.search;
+        sessionStorage.setItem("returnTo", currentPath);
+      }
+      router.replace("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <GlobalSearchProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header />
+          <AppBreadcrumb />
+          <main className="flex-1 overflow-y-auto bg-background">{children}</main>
+        </div>
+      </div>
+    </GlobalSearchProvider>
+  );
+}

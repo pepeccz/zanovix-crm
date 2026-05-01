@@ -1,0 +1,102 @@
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: zanovix-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zanovix_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-zanovix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - zanovix-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zanovix} -d ${POSTGRES_DB:-zanovix_crm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis cache (JWT blacklist, rate limiting)
+  redis:
+    image: redis:7-alpine
+    container_name: zanovix-redis
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-}
+      --save 900 1
+      --appendonly no
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - zanovix-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # API service: FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: zanovix-api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - zanovix-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Admin Panel: Next.js
+  admin-panel:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.admin-panel
+    container_name: zanovix-admin-panel
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "8001:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - zanovix-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  zanovix-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

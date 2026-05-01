@@ -1,0 +1,909 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { sileo } from "sileo";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Car,
+  ArrowLeft,
+  FileText,
+  Plus,
+  Pencil,
+  Trash2,
+  Building2,
+  User,
+  CheckCircle2,
+  Settings,
+  Layers,
+  Globe,
+  Eye,
+  XCircle,
+} from "lucide-react";
+import api from "@/lib/api";
+import { PageContainer } from "@/components/shared/page-container";
+
+// Custom hooks
+import { useCategoryData } from "@/hooks/use-category-data";
+import { useTierElements } from "@/hooks/use-tier-elements";
+import { useCategoryElements } from "@/hooks/use-category-elements";
+
+// Extracted dialog components
+import { TierFormDialog } from "@/components/tariffs/tier-form-dialog";
+import { BaseDocDialog } from "@/components/tariffs/base-doc-dialog";
+import { DeleteConfirmationDialog } from "@/components/tariffs/delete-confirmation-dialog";
+import { ElementFormDialog } from "@/components/tariffs/element-form-dialog";
+import { ServiceFormDialog } from "@/components/tariffs/service-form-dialog";
+import { PromptSectionFormDialog } from "@/components/tariffs/prompt-section-form-dialog";
+import { PromptPreviewDialog } from "@/components/tariffs/prompt-preview-dialog";
+import { ElementsTreeSection } from "@/components/tariffs/elements-tree-section";
+
+import type {
+  TariffTier,
+  BaseDocumentation,
+  ClientType,
+  Element,
+  AdditionalService,
+  TariffPromptSection,
+  PromptSectionType,
+} from "@/lib/types";
+
+export default function CategoryDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const categoryId = params.categoryId as string;
+
+  // Use custom hook for category data
+  const { category, isLoading, refetch } = useCategoryData(categoryId);
+
+  // Tier dialog state (simplified)
+  const [tierDialog, setTierDialog] = useState<{
+    open: boolean;
+    tier: TariffTier | null;
+    inheritedKeywords?: string[];
+  }>({ open: false, tier: null });
+  const [deleteTier, setDeleteTier] = useState<TariffTier | null>(null);
+
+  // Handler for editing tier with inherited keywords
+  const handleEditTier = async (tier: TariffTier) => {
+    let inheritedKw: string[] = [];
+    try {
+      const inclusions = await api.getTierInclusions(tier.id);
+      const elementIds = inclusions
+        .filter((inc) => inc.element_id)
+        .map((inc) => inc.element_id);
+
+      // Collect unique keywords from all included elements
+      const keywordSet = new Set<string>();
+      for (const elemId of elementIds) {
+        const elem = elements?.find((e) => e.id === elemId);
+        if (elem?.keywords) {
+          elem.keywords.forEach((k) => keywordSet.add(k));
+        }
+      }
+      inheritedKw = Array.from(keywordSet);
+    } catch (e) {
+      console.error("Error loading inherited keywords:", e);
+    }
+
+    setTierDialog({ open: true, tier, inheritedKeywords: inheritedKw });
+  };
+
+  // Base documentation dialog state (simplified)
+  const [baseDocDialog, setBaseDocDialog] = useState<{
+    open: boolean;
+    doc: BaseDocumentation | null;
+  }>({ open: false, doc: null });
+  const [deleteBaseDoc, setDeleteBaseDoc] = useState<BaseDocumentation | null>(null);
+
+  // Element dialog state
+  const [elementDialog, setElementDialog] = useState<{
+    open: boolean;
+    element: Element | null;
+  }>({ open: false, element: null });
+  const [deleteElement, setDeleteElement] = useState<Element | null>(null);
+
+  // Service dialog state
+  const [serviceDialog, setServiceDialog] = useState<{
+    open: boolean;
+    service: AdditionalService | null;
+  }>({ open: false, service: null });
+  const [deleteService, setDeleteService] = useState<AdditionalService | null>(null);
+  const [globalServices, setGlobalServices] = useState<AdditionalService[]>([]);
+
+  // Prompt section dialog state
+  const [promptDialog, setPromptDialog] = useState<{
+    open: boolean;
+    section: TariffPromptSection | null;
+  }>({ open: false, section: null });
+  const [deletePromptSection, setDeletePromptSection] = useState<TariffPromptSection | null>(null);
+  const [previewPromptOpen, setPreviewPromptOpen] = useState(false);
+
+  // All tiers (no filtering needed - category already determines client type)
+  const tiers = category?.tariff_tiers || [];
+
+  // Fetch elements for this category
+  const { elements, elementTree, isLoading: isLoadingElements, refetch: refetchElements } =
+    useCategoryElements(categoryId);
+
+  // Fetch element counts for all tiers
+  const { tierElementCounts } = useTierElements(category?.tariff_tiers);
+
+  // Fetch global services
+  const fetchGlobalServices = async () => {
+    try {
+      const response = await api.getAdditionalServices({ limit: 100 });
+      const globals = response.items.filter((s) => s.category_id === null);
+      setGlobalServices(globals);
+    } catch (error) {
+      console.error("Error fetching global services:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Fire-and-forget: Global services load independently
+    // (not blocking main loading state)
+    fetchGlobalServices();
+  }, []);
+
+  // Combine category services with global services
+  const allServices = [
+    ...(category?.additional_services || []),
+    ...globalServices.filter(
+      (gs) => !category?.additional_services?.some((cs) => cs.id === gs.id)
+    ),
+  ].sort((a, b) => a.sort_order - b.sort_order);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
+
+  // Get category client type badge
+  const getCategoryClientTypeBadge = (clientType: ClientType) => {
+    switch (clientType) {
+      case "professional":
+        return (
+          <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
+            <Building2 className="h-3 w-3 mr-1" />
+            Profesional
+          </Badge>
+        );
+      case "particular":
+        return (
+          <Badge variant="secondary">
+            <User className="h-3 w-3 mr-1" />
+            Particular
+          </Badge>
+        );
+    }
+  };
+
+  // Handler for toggling element active/inactive
+  const handleToggleElementActive = useCallback(
+    async (element: Element, newValue: boolean) => {
+      try {
+        await api.updateElement(element.id, { is_active: newValue });
+        sileo.success({ title: newValue
+            ? `Elemento "${element.name}" activado`
+            : `Elemento "${element.name}" desactivado` });
+        refetchElements();
+      } catch (error) {
+        console.error("Error toggling element active state:", error);
+        sileo.error({ title: "Error al cambiar el estado del elemento" });
+      }
+    },
+    [refetchElements]
+  );
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-pulse text-muted-foreground">
+            Cargando categoria...
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (!category) {
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Car className="h-12 w-12 text-muted-foreground/50 mb-4" />
+          <p className="text-muted-foreground">Categoria no encontrada</p>
+          <Button variant="outline" className="mt-4" onClick={() => router.push("/reformas")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a Reformas
+          </Button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  return (
+    <PageContainer className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold truncate">{category.name}</h1>
+            {category.client_type && getCategoryClientTypeBadge(category.client_type)}
+            <Badge variant={category.is_active ? "default" : "secondary"} className="shrink-0">
+              {category.is_active ? "Activo" : "Inactivo"}
+            </Badge>
+          </div>
+          {category.description && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{category.description}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Stats Overview - Compact */}
+      <div className="flex items-center gap-6 px-4 py-3 bg-muted/50 rounded-lg border">
+        <div className="flex items-center gap-2">
+          <Car className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Tarifas:</span>
+          <span className="font-semibold">{category.tariff_tiers?.length || 0}</span>
+        </div>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <Layers className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Elementos:</span>
+          <span className="font-semibold">{elements?.length || 0}</span>
+        </div>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Docs Base:</span>
+          <span className="font-semibold">{category.base_documentation?.length || 0}</span>
+        </div>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <Plus className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Servicios:</span>
+          <span className="font-semibold">{category.additional_services?.length || 0}</span>
+        </div>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <Settings className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Prompt:</span>
+          <span className="font-semibold">{category.prompt_sections?.length || 0}</span>
+        </div>
+      </div>
+
+      {/* Tariff Tiers */}
+      <Card>
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-5 w-5" />
+              Tarifas
+            </CardTitle>
+            <Button onClick={() => setTierDialog({ open: true, tier: null })}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Tarifa
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {tiers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Car className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">
+                No hay tarifas configuradas
+              </p>
+              <Button onClick={() => setTierDialog({ open: true, tier: null })}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Tarifa
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-24">Codigo</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Condiciones</TableHead>
+                  <TableHead className="text-right">Precio</TableHead>
+                  <TableHead className="w-28">Elementos</TableHead>
+                  <TableHead className="w-20 text-center">Estado</TableHead>
+                  <TableHead className="w-40">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tiers
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((tier) => (
+                    <TableRow key={tier.id}>
+                      <TableCell>
+                        <Badge variant="outline">{tier.code}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{tier.name}</div>
+                        {tier.description && (
+                          <div className="text-xs text-muted-foreground truncate max-w-xs">
+                            {tier.description}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm max-w-xs">
+                        <div className="truncate">{tier.conditions || "-"}</div>
+                        {tier.classification_rules?.applies_if_any?.length ? (
+                          <div className="text-xs mt-1">
+                            Keywords: {tier.classification_rules.applies_if_any.slice(0, 2).join(", ")}
+                            {tier.classification_rules.applies_if_any.length > 2 && "..."}
+                          </div>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="font-semibold">{formatPrice(tier.price)}</span>
+                      </TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="outline" className="cursor-help">
+                                {tierElementCounts[tier.id]?.total_elements || 0} elem.
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="left" className="max-w-xs">
+                              <div className="space-y-1">
+                                {tierElementCounts[tier.id]?.total_elements > 0 ? (
+                                  <>
+                                    <p className="font-medium text-xs mb-1">Elementos incluidos:</p>
+                                    {Object.entries(tierElementCounts[tier.id]?.elements || {})
+                                      .slice(0, 5)
+                                      .map(([elementId, qty]) => (
+                                        <div key={elementId} className="text-xs">
+                                          {qty ? `(max: ${qty})` : "(ilimitado)"}
+                                        </div>
+                                      ))}
+                                    {tierElementCounts[tier.id]?.total_elements > 5 && (
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        +{tierElementCounts[tier.id].total_elements - 5} más...
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground">
+                                    Sin elementos configurados
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={tier.is_active ? "default" : "secondary"}
+                          className={tier.is_active ? "bg-green-600" : ""}
+                        >
+                          {tier.is_active ? (
+                            <>
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Activo
+                            </>
+                          ) : (
+                            "Inactivo"
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8"
+                            onClick={() => router.push(`/reformas/${categoryId}/${tier.id}/inclusions`)}
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Gestionar
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => handleEditTier(tier)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => setDeleteTier(tier)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Elements Section - Tree View */}
+      <ElementsTreeSection
+        elements={elements}
+        elementTree={elementTree}
+        isLoading={isLoadingElements}
+        onCreateElement={() => setElementDialog({ open: true, element: null })}
+        onDeleteElement={(element) => setDeleteElement(element)}
+        onToggleActive={handleToggleElementActive}
+      />
+
+      {/* Base Documentation */}
+      <Card>
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Documentacion Base
+            </CardTitle>
+            <Button onClick={() => setBaseDocDialog({ open: true, doc: null })}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Documentación
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {category.base_documentation?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">
+                No hay documentacion base configurada
+              </p>
+              <Button onClick={() => setBaseDocDialog({ open: true, doc: null })}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Documentación
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {category.base_documentation
+                ?.sort((a, b) => a.sort_order - b.sort_order)
+                .map((doc, index) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-start gap-4 p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full text-sm font-medium flex-shrink-0">
+                      {index + 1}
+                    </div>
+
+                    {doc.image_url && (
+                      <div className="relative w-20 h-20 rounded overflow-hidden bg-muted flex-shrink-0">
+                        <img
+                          src={doc.image_url}
+                          alt="Ejemplo"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">{doc.description}</p>
+                      {!doc.image_url && (
+                        <Badge variant="outline" className="text-xs mt-2">
+                          Sin imagen
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => setBaseDocDialog({ open: true, doc })}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => setDeleteBaseDoc(doc)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Additional Services */}
+      <Card>
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Servicios Adicionales
+            </CardTitle>
+            <Button onClick={() => setServiceDialog({ open: true, service: null })}>
+              <Plus className="h-4 w-4 mr-2" />
+              Anadir Servicio
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {allServices.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-4">
+              No hay servicios adicionales configurados
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Codigo</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Descripcion</TableHead>
+                  <TableHead className="text-right">Precio</TableHead>
+                  <TableHead className="text-center">Ambito</TableHead>
+                  <TableHead className="text-center">Estado</TableHead>
+                  <TableHead className="w-20">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allServices.map((service) => (
+                  <TableRow key={service.id}>
+                    <TableCell>
+                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                        {service.code}
+                      </code>
+                    </TableCell>
+                    <TableCell className="font-medium">{service.name}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
+                      {service.description || "-"}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {formatPrice(service.price)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {service.category_id === null ? (
+                        <Badge variant="outline" className="gap-1">
+                          <Globe className="h-3 w-3" />
+                          Global
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Categoria</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={service.is_active ? "default" : "secondary"}>
+                        {service.is_active ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => setServiceDialog({ open: true, service })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => setDeleteService(service)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Prompt Sections */}
+      <Card>
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Secciones de Prompt
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setPreviewPromptOpen(true)}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+              <Button
+                onClick={() => setPromptDialog({ open: true, section: null })}
+                disabled={(category.prompt_sections?.length || 0) >= 4}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Seccion
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!category.prompt_sections || category.prompt_sections.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">
+                No hay secciones de prompt configuradas
+              </p>
+              <Button onClick={() => setPromptDialog({ open: true, section: null })}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Seccion
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Ultima Actualizacion</TableHead>
+                  <TableHead className="w-20">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {category.prompt_sections.map((section) => (
+                  <TableRow key={section.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {section.section_type === "algorithm"
+                          ? "Algoritmo de Decision"
+                          : section.section_type === "recognition_table"
+                          ? "Tabla de Reconocimiento"
+                          : section.section_type === "special_cases"
+                          ? "Casos Especiales"
+                          : "Contexto Adicional"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {section.content.length} caracteres
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {section.is_active ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Activo
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Inactivo
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">v{section.version}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(section.updated_at).toLocaleString("es-ES", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => setPromptDialog({ open: true, section })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => setDeletePromptSection(section)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tier Form Dialog */}
+      <TierFormDialog
+        open={tierDialog.open}
+        onOpenChange={(open) => setTierDialog({ open, tier: null })}
+        tier={tierDialog.tier}
+        categoryId={categoryId}
+        onSuccess={refetch}
+        inheritedKeywords={tierDialog.inheritedKeywords}
+      />
+
+      {/* Delete Tier Dialog */}
+      <DeleteConfirmationDialog
+        open={!!deleteTier}
+        onOpenChange={() => setDeleteTier(null)}
+        title="Eliminar Tarifa"
+        description={`Estas seguro de eliminar la tarifa "${deleteTier?.name}" (${deleteTier?.code})? Esta accion no se puede deshacer.`}
+        onConfirm={async () => {
+          if (deleteTier) {
+            await api.deleteTariffTier(deleteTier.id);
+            setDeleteTier(null);
+            refetch();
+          }
+        }}
+      />
+
+      {/* Base Documentation Dialog */}
+      <BaseDocDialog
+        open={baseDocDialog.open}
+        onOpenChange={(open) => setBaseDocDialog({ open, doc: null })}
+        doc={baseDocDialog.doc}
+        categoryId={categoryId}
+        defaultSortOrder={category.base_documentation?.length || 0}
+        onSuccess={refetch}
+      />
+
+      {/* Delete Base Documentation Dialog */}
+      <DeleteConfirmationDialog
+        open={!!deleteBaseDoc}
+        onOpenChange={() => setDeleteBaseDoc(null)}
+        title="Eliminar Documentacion"
+        description="Estas seguro de eliminar esta documentacion base? Esta accion no se puede deshacer."
+        itemDescription={deleteBaseDoc?.description}
+        onConfirm={async () => {
+          if (deleteBaseDoc) {
+            await api.deleteBaseDocumentation(deleteBaseDoc.id);
+            setDeleteBaseDoc(null);
+            refetch();
+          }
+        }}
+      />
+
+      {/* Element Form Dialog */}
+      <ElementFormDialog
+        open={elementDialog.open}
+        onOpenChange={(open) => setElementDialog({ open, element: null })}
+        element={elementDialog.element}
+        categoryId={categoryId}
+        onSuccess={() => {
+          refetchElements();
+          refetch();
+        }}
+      />
+
+      {/* Delete Element Dialog */}
+      <DeleteConfirmationDialog
+        open={!!deleteElement}
+        onOpenChange={() => setDeleteElement(null)}
+        title="Eliminar Elemento"
+        description={`Estas seguro de eliminar el elemento "${deleteElement?.name}" (${deleteElement?.code})? Esta accion no se puede deshacer.`}
+        itemDescription={deleteElement?.description || undefined}
+        onConfirm={async () => {
+          if (deleteElement) {
+            await api.deleteElement(deleteElement.id);
+            setDeleteElement(null);
+            refetchElements();
+            refetch();
+          }
+        }}
+      />
+
+      {/* Service Form Dialog */}
+      <ServiceFormDialog
+        open={serviceDialog.open}
+        onOpenChange={(open) => setServiceDialog({ open, service: null })}
+        service={serviceDialog.service}
+        categoryId={categoryId}
+        defaultSortOrder={allServices.length}
+        onSuccess={() => {
+          refetch();
+          fetchGlobalServices();
+        }}
+      />
+
+      {/* Delete Service Dialog */}
+      <DeleteConfirmationDialog
+        open={!!deleteService}
+        onOpenChange={() => setDeleteService(null)}
+        title="Eliminar Servicio"
+        description={`Estas seguro de eliminar el servicio "${deleteService?.name}" (${deleteService?.code})? Esta accion no se puede deshacer.`}
+        itemDescription={deleteService?.description || undefined}
+        onConfirm={async () => {
+          if (deleteService) {
+            await api.deleteAdditionalService(deleteService.id);
+            setDeleteService(null);
+            refetch();
+            fetchGlobalServices();
+          }
+        }}
+      />
+
+      {/* Prompt Section Form Dialog */}
+      <PromptSectionFormDialog
+        open={promptDialog.open}
+        onOpenChange={(open) => setPromptDialog({ open, section: null })}
+        section={promptDialog.section}
+        categoryId={categoryId}
+        existingSectionTypes={
+          (category.prompt_sections?.map((s) => s.section_type) || []) as PromptSectionType[]
+        }
+        onSuccess={refetch}
+      />
+
+      {/* Delete Prompt Section Dialog */}
+      <DeleteConfirmationDialog
+        open={!!deletePromptSection}
+        onOpenChange={() => setDeletePromptSection(null)}
+        title="Eliminar Seccion de Prompt"
+        description={`Estas seguro de eliminar esta seccion de prompt? Esta accion no se puede deshacer.`}
+        onConfirm={async () => {
+          if (deletePromptSection) {
+            await api.deletePromptSection(deletePromptSection.id);
+            setDeletePromptSection(null);
+            refetch();
+          }
+        }}
+      />
+
+      {/* Prompt Preview Dialog */}
+      <PromptPreviewDialog
+        open={previewPromptOpen}
+        onOpenChange={setPreviewPromptOpen}
+        categoryId={categoryId}
+        categoryName={category.name}
+      />
+    </PageContainer>
+  );
+}
