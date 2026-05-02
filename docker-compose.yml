@@ -1,18 +1,20 @@
+name: zanovix-crm
+
 services:
   # PostgreSQL database
   postgres:
     image: postgres:15-alpine
-    container_name: zanovix-postgres
+    container_name: zanovix-crm-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zanovix_crm}
       POSTGRES_USER: ${POSTGRES_USER:-zanovix}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - zanovix-crm-postgres-data:/var/lib/postgresql/data
     networks:
-      - zanovix-network
+      - zanovix-crm-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zanovix} -d ${POSTGRES_DB:-zanovix_crm}"]
@@ -24,7 +26,7 @@ services:
   # Redis cache (JWT blacklist, rate limiting)
   redis:
     image: redis:7-alpine
-    container_name: zanovix-redis
+    container_name: zanovix-crm-redis
     command: >
       redis-server
       --requirepass ${REDIS_PASSWORD:-}
@@ -33,11 +35,11 @@ services:
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6380:6379"
     volumes:
-      - redis_data:/data
+      - zanovix-crm-redis-data:/data
     networks:
-      - zanovix-network
+      - zanovix-crm-network
     restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
@@ -51,17 +53,17 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.api
-    container_name: zanovix-api
+    container_name: zanovix-crm-api
     env_file: .env
     ports:
-      - "8000:8000"
+      - "8010:8000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - zanovix-network
+      - zanovix-crm-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
@@ -75,16 +77,16 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.admin-panel
-    container_name: zanovix-admin-panel
+    container_name: zanovix-crm-admin-panel
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8010}
     ports:
-      - "8001:3000"
+      - "8011:3000"
     depends_on:
       api:
         condition: service_healthy
     networks:
-      - zanovix-network
+      - zanovix-crm-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
@@ -94,9 +96,12 @@ services:
       start_period: 60s
 
 networks:
-  zanovix-network:
+  zanovix-crm-network:
+    name: zanovix-crm-network
     driver: bridge
 
 volumes:
-  postgres_data:
-  redis_data:
+  zanovix-crm-postgres-data:
+    name: zanovix-crm-postgres-data
+  zanovix-crm-redis-data:
+    name: zanovix-crm-redis-data
