@@ -158,9 +158,10 @@ function SidebarInner({
         >
           <Image
             src={isCollapsed ? "/logo-isotipo.png" : "/logo-full-white.png"}
-            width={isCollapsed ? 40 : 120}
-            height={isCollapsed ? 40 : 40}
+            width={isCollapsed ? 40 : 140}
+            height={isCollapsed ? 40 : 33}
             alt="Zanovix CRM"
+            priority
             className="flex-shrink-0 object-contain"
           />
         </Link>
