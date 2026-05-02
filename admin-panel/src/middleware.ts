@@ -37,7 +37,9 @@ function isExcluded(pathname: string): boolean {
     pathname === "/login" ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    // Public static assets (logos, icons, manifest, etc.) — anything with a file extension.
+    /\.[a-zA-Z0-9]{2,5}$/.test(pathname)
   );
 }
 
