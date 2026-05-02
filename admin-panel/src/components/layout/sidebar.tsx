@@ -286,7 +286,7 @@ export function Sidebar() {
   const { isCollapsed, toggle, isMobile, isMobileOpen, setMobileOpen } =
     useSidebar();
 
-  const displayName = user?.display_name || user?.username || "Usuario";
+  const displayName = user?.display_name || user?.email || "Usuario";
   const roleLabels: Record<string, string> = {
     admin: "Administrador",
     consultor: "Consultor",
