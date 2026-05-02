@@ -6,27 +6,12 @@ import { ChevronRight, Home } from "lucide-react";
 
 const PATH_LABELS: Record<string, string> = {
   dashboard:       "Dashboard",
-  cases:           "Expedientes",
-  escalations:     "Escalaciones",
+  leads:           "Leads",
   users:           "Usuarios",
-  conversations:   "Conversaciones",
-  reformas:        "Reformas",
-  elementos:       "Elementos",
-  advertencias:    "Advertencias",
-  imagenes:        "Imágenes",
-  normativas:      "Normativas",
-  consulta:        "Consulta RAG",
-  documentos:      "Documentos",
   settings:        "Configuración",
   config:          "General",
   system:          "Sistema",
   "admin-users":   "Administradores",
-  usage:           "Uso de Tokens",
-  inclusions:      "Inclusiones",
-  tariffs:         "Tarifas",
-  categories:      "Categorías",
-  warnings:        "Advertencias",
-  "rag-query":     "Consulta RAG",
 };
 
 function isUUID(segment: string): boolean {
