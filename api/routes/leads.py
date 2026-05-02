@@ -153,6 +153,36 @@ async def list_leads(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/leads/{id}  — authenticated, RBAC scoped
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/leads/{lead_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=LeadRead,
+    summary="Get a single lead (authenticated, RBAC scoped)",
+)
+async def get_lead(
+    lead_id: uuid.UUID,
+    session: AsyncSession = Depends(_get_session),
+    current_user: User = Depends(get_current_user),
+) -> LeadRead:
+    """
+    Return a single lead by ID.
+
+    RBAC:
+    - admin: sees any lead
+    - consultor / comercial: sees only leads where owner_id == own id; otherwise 404
+    """
+    service = LeadService(session)
+    lead = await service.get_for_user(current_user, lead_id)
+    if lead is None:
+        raise LeadNotFoundError(str(lead_id))
+    return LeadRead.model_validate(lead)
+
+
+# ---------------------------------------------------------------------------
 # PATCH /api/leads/{id}/status  — authenticated, state machine enforced
 # ---------------------------------------------------------------------------
 
