@@ -17,10 +17,12 @@ describe("next.config security headers", () => {
     expect(headers).toHaveLength(5);
   });
 
-  it("Content-Security-Policy is present and contains sha256-", () => {
+  it("Content-Security-Policy is present and uses unsafe-inline (no hash)", () => {
     const h = findHeader("Content-Security-Policy");
     expect(h).toBeDefined();
-    expect(h!.value).toContain("sha256-");
+    // Hash-source cancels 'unsafe-inline' per CSP3 §6.7.2 — must NOT contain sha256-.
+    expect(h!.value).not.toContain("sha256-");
+    expect(h!.value).toContain("'unsafe-inline'");
   });
 
   it("Content-Security-Policy contains all required directives", () => {
