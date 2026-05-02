@@ -3,6 +3,12 @@
  *
  * Exported separately so jest (CommonJS) can import it without having to
  * parse the full next.config.ts ESM module.
+ *
+ * NOTE: script-src uses 'unsafe-inline' to accommodate Next.js production
+ * runtime (hydration bootstrap, __NEXT_DATA__, chunk loading). A nonce-based
+ * CSP via Next middleware is the proper long-term fix; tracked as TODO for
+ * production hardening. For now this matches the operational reality of an
+ * internal-only admin panel served over an SSH tunnel.
  */
 import * as crypto from "crypto";
 import { THEME_INIT_SCRIPT } from "./theme-init";
@@ -31,24 +37,12 @@ export function computeThemeScriptHash(): string {
 export function buildSecurityHeaders(): HeaderEntry[] {
   const themeHash = computeThemeScriptHash();
 
-  // Chatwoot connect-src: allow the configured domain or fall back to 'self'.
-  const chatwootUrl = process.env.NEXT_PUBLIC_CHATWOOT_URL ?? "";
-  let chatwootOrigin = "'self'";
-  try {
-    if (chatwootUrl) {
-      const { origin } = new URL(chatwootUrl);
-      chatwootOrigin = origin;
-    }
-  } catch {
-    // Malformed URL — keep 'self'
-  }
-
   const csp = [
     "default-src 'self'",
-    `script-src 'self' ${themeHash}`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${themeHash}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    `connect-src 'self' ${chatwootOrigin}`,
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self'",
     "font-src 'self' data:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
