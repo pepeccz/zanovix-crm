@@ -13,6 +13,7 @@ from __future__ import annotations
 from fastapi import Depends, HTTPException, Request
 
 from shared.rate_limiter import RedisSlidingWindowLimiter
+from shared.redis_client import get_redis_client
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -30,7 +31,7 @@ def get_lead_post_limiter(request: Request) -> RedisSlidingWindowLimiter:
     Usage as a FastAPI dependency (used by Phase 5 POST /api/leads):
         dependencies=[Depends(enforce_lead_post_rate_limit)]
     """
-    redis_client = request.app.state.redis
+    redis_client = get_redis_client()
     return RedisSlidingWindowLimiter(
         redis_client=redis_client,
         key_prefix=KEY_PREFIX,
