@@ -1,112 +1,81 @@
 """
-MSI Automotive - Rate Limiting Middleware.
+Rate-limit middleware for Zanovix CRM.
 
-Simple in-memory rate limiter for API endpoints.
-For production with multiple instances, consider Redis-based rate limiting.
+Redis key format: rate_limit:leads:post:{ip}
+Limit:           20 requests / 60 seconds / IP address (sliding window).
+
+Fail-open: if Redis is unavailable, the request is allowed through and a
+WARNING is logged.  See shared/rate_limiter.py for the design rationale.
 """
 
-import logging
-import time
-from collections import defaultdict
+from __future__ import annotations
 
-logger = logging.getLogger(__name__)
+from fastapi import Depends, HTTPException, Request
+
+from shared.rate_limiter import RedisSlidingWindowLimiter
+
+# ── Constants ────────────────────────────────────────────────────────────────
+
+WINDOW_SECONDS = 60
+MAX_REQUESTS = 20
+KEY_PREFIX = "rate_limit:leads:post"  # spec §6 key format
 
 
-class InMemoryRateLimiter:
+# ── Factory ───────────────────────────────────────────────────────────────────
+
+def get_lead_post_limiter(request: Request) -> RedisSlidingWindowLimiter:
     """
-    In-memory rate limiter using sliding window.
+    Return a RedisSlidingWindowLimiter wired to the app's Redis client.
 
-    NOTE: This is suitable for single-instance deployments.
-    For multi-instance production, use Redis-based rate limiting.
+    Usage as a FastAPI dependency (used by Phase 5 POST /api/leads):
+        dependencies=[Depends(enforce_lead_post_rate_limit)]
     """
+    redis_client = request.app.state.redis
+    return RedisSlidingWindowLimiter(
+        redis_client=redis_client,
+        key_prefix=KEY_PREFIX,
+        limit=MAX_REQUESTS,
+        window_seconds=WINDOW_SECONDS,
+    )
 
-    def __init__(self):
-        self._requests: dict[str, list[float]] = defaultdict(list)
 
-    def check_rate_limit(
-        self,
-        key: str,
-        max_requests: int,
-        window_seconds: int,
-    ) -> bool:
-        """
-        Check if request is within rate limit.
+# ── Dependency ────────────────────────────────────────────────────────────────
 
-        Args:
-            key: Unique identifier (e.g., "upload:username" or "ip:1.2.3.4")
-            max_requests: Maximum allowed requests in window
-            window_seconds: Time window in seconds
+async def enforce_lead_post_rate_limit(
+    request: Request,
+    limiter: RedisSlidingWindowLimiter = Depends(get_lead_post_limiter),
+) -> None:
+    """
+    FastAPI dependency that enforces the lead-post rate limit.
 
-        Returns:
-            True if request is allowed, False if rate limited
-        """
-        now = time.time()
-        window_start = now - window_seconds
+    Extracts the client IP (preferring the first value of X-Forwarded-For over
+    the raw connection address), checks the sliding window, and raises HTTP 429
+    if the limit is exceeded.
+    """
+    ip = _client_ip(request)
+    result = await limiter.check(ip)
 
-        # Remove requests outside the window
-        self._requests[key] = [
-            req_time
-            for req_time in self._requests[key]
-            if req_time > window_start
-        ]
-
-        # Check if under limit
-        if len(self._requests[key]) >= max_requests:
-            logger.warning(
-                f"Rate limit exceeded for {key}: "
-                f"{len(self._requests[key])}/{max_requests} in {window_seconds}s"
-            )
-            return False
-
-        # Record this request
-        self._requests[key].append(now)
-        return True
-
-    def get_remaining(
-        self,
-        key: str,
-        max_requests: int,
-        window_seconds: int,
-    ) -> int:
-        """
-        Get remaining requests in the current window.
-
-        Args:
-            key: Unique identifier
-            max_requests: Maximum allowed requests in window
-            window_seconds: Time window in seconds
-
-        Returns:
-            Number of remaining requests allowed
-        """
-        now = time.time()
-        window_start = now - window_seconds
-
-        # Count requests in current window
-        current_requests = sum(
-            1 for req_time in self._requests.get(key, [])
-            if req_time > window_start
+    if not result.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "rate_limit_exceeded",
+                "retry_after_seconds": result.retry_after,
+            },
+            headers={"Retry-After": str(result.retry_after)},
         )
 
-        return max(0, max_requests - current_requests)
 
-    def reset(self, key: str) -> None:
-        """Reset rate limit for a specific key."""
-        if key in self._requests:
-            del self._requests[key]
+def _client_ip(request: Request) -> str:
+    """
+    Extract the real client IP.
 
-    def clear_all(self) -> None:
-        """Clear all rate limit data."""
-        self._requests.clear()
-
-
-# Singleton instance
-_rate_limiter: InMemoryRateLimiter | None = None
-
-
-def get_rate_limiter() -> InMemoryRateLimiter:
-    """Get singleton rate limiter instance."""
-    global _rate_limiter
-    if _rate_limiter is None:
-        _rate_limiter = InMemoryRateLimiter()
-    return _rate_limiter
+    Prefers the first IP in X-Forwarded-For (set by proxies / load balancers),
+    falls back to the direct TCP connection address.
+    """
+    xff = request.headers.get("X-Forwarded-For")
+    if xff:
+        return xff.split(",")[0].strip()
+    if request.client:
+        return request.client.host
+    return "unknown"
