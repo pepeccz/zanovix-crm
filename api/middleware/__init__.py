@@ -1,5 +1,5 @@
-"""MSI Automotive - API Middleware."""
+"""Zanovix CRM — API Middleware."""
 
-from api.middleware.rate_limit import InMemoryRateLimiter, get_rate_limiter
+from api.middleware.rate_limit import enforce_lead_post_rate_limit
 
-__all__ = ["InMemoryRateLimiter", "get_rate_limiter"]
+__all__ = ["enforce_lead_post_rate_limit"]

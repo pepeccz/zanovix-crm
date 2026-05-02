@@ -11,7 +11,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from api.errors import register_domain_error_handlers
 from api.routes import admin
+from api.routes import leads
 from shared.config import get_settings
 from shared.logging_config import configure_logging
 from shared.fastapi_errors import register_error_handlers
@@ -38,12 +40,14 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
-# Error handlers
+# Error handlers (generic HTTP + validation)
 register_error_handlers(app)
+# Domain error handlers (Lead aggregate)
+register_domain_error_handlers(app)
 
 # Routers
 app.include_router(admin.router)
-# TODO Phase 5: app.include_router(leads.router, prefix="/api")
+app.include_router(leads.router, prefix="/api")
 
 
 @app.get("/health")
