@@ -79,7 +79,7 @@ def upgrade() -> None:
             "raw_payload",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
-            server_default="'{}'::jsonb",
+            server_default=sa.text("'{}'::jsonb"),
         ),
         sa.CheckConstraint(
             "vertical IN ('clinicas_dentales','general')",
