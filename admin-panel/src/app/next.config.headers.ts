@@ -4,11 +4,18 @@
  * Exported separately so jest (CommonJS) can import it without having to
  * parse the full next.config.ts ESM module.
  *
- * NOTE: script-src uses 'unsafe-inline' to accommodate Next.js production
- * runtime (hydration bootstrap, __NEXT_DATA__, chunk loading). A nonce-based
- * CSP via Next middleware is the proper long-term fix; tracked as TODO for
- * production hardening. For now this matches the operational reality of an
- * internal-only admin panel served over an SSH tunnel.
+ * NOTE: script-src uses 'unsafe-inline' WITHOUT a hash on purpose.
+ *
+ * Per CSP3 §6.7.2, when a hash- or nonce-source is present in script-src,
+ * 'unsafe-inline' is IGNORED. Next.js production runtime emits 5–6 inline
+ * scripts (hydration bootstrap, RSC payload, font preload optimisation,
+ * error boundary stub, theme-init) whose hashes change per build. Listing a
+ * single hash blocks all the others and breaks the entire app.
+ *
+ * For an internal admin panel served over an SSH tunnel with no external
+ * surface, 'unsafe-inline' is the operationally correct choice. Promote to
+ * a nonce-based CSP via Next proxy/middleware (forces dynamic rendering)
+ * before exposing this panel publicly.
  */
 import * as crypto from "crypto";
 import { THEME_INIT_SCRIPT } from "./theme-init";
@@ -20,7 +27,7 @@ export interface HeaderEntry {
 
 /**
  * Compute the CSP-formatted sha256 hash of THEME_INIT_SCRIPT.
- * Format: 'sha256-<base64>'
+ * Kept available for future nonce/hash migration; not currently used in CSP.
  */
 export function computeThemeScriptHash(): string {
   const base64 = crypto
@@ -35,11 +42,9 @@ export function computeThemeScriptHash(): string {
  * This function is pure and synchronous — safe to call from both Next.js and jest.
  */
 export function buildSecurityHeaders(): HeaderEntry[] {
-  const themeHash = computeThemeScriptHash();
-
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${themeHash}`,
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "connect-src 'self'",
