@@ -113,16 +113,17 @@ class ApiClient {
   // ===========================================
 
   async login(
-    username: string,
+    email: string,
     password: string
-  ): Promise<{ access_token: string; token_type: string; expires_in: number }> {
+  ): Promise<{ access_token: string; token_type: string; expires_at: string; role: string }> {
     const response = await this.request<{
       access_token: string;
       token_type: string;
-      expires_in: number;
+      expires_at: string;
+      role: string;
     }>("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
     this.setToken(response.access_token);
     return response;

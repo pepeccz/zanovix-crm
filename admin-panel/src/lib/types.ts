@@ -13,9 +13,10 @@ export type AdminRole = UserRole;
 
 export interface CurrentUser {
   id: string;
-  username: string;
+  email: string;
   display_name: string | null;
   role: UserRole;
+  is_active: boolean;
 }
 
 // ===========================================

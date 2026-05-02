@@ -13,7 +13,7 @@ import type { AdminRole, CurrentUser } from "@/lib/types";
 
 interface User {
   id: string;
-  username: string;
+  email: string;
   display_name: string | null;
   role: AdminRole;
 }
@@ -24,7 +24,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   hasRole: (role: AdminRole) => boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -40,12 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData: CurrentUser = await api.getMe();
       setUser({
         id: userData.id,
-        username: userData.username,
+        email: userData.email,
         display_name: userData.display_name,
         role: userData.role,
       });
     } catch {
-      // 401 from getMe → api.ts redirects to /login via window.location
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -56,13 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [checkAuth]);
 
-  const login = async (username: string, password: string) => {
-    await api.login(username, password);
-    // Fetch user data from server after login
+  const login = async (email: string, password: string) => {
+    await api.login(email, password);
     const userData: CurrentUser = await api.getMe();
     setUser({
       id: userData.id,
-      username: userData.username,
+      email: userData.email,
       display_name: userData.display_name,
       role: userData.role,
     });
