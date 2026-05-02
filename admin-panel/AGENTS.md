@@ -1,6 +1,6 @@
 # Admin Panel Component Guidelines
 
-This directory contains the MSI-a Admin Panel built with **Next.js 16**, **React 19**, **Radix UI** (shadcn/ui), and **Tailwind CSS**.
+This directory contains the **Zanovix CRM Admin Panel** built with **Next.js 16**, **React 19**, **Radix UI** (shadcn/ui), and **Tailwind CSS**.
 
 ## Auto-invoke Skills
 
@@ -8,12 +8,11 @@ When working in this directory, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
-| Creating/modifying pages | `msia-admin` |
-| Creating/modifying components | `msia-admin` |
-| Working with contexts/hooks | `msia-admin` |
+| Creating/modifying pages | `nextjs-16` |
+| Creating/modifying components | `radix-tailwind` |
+| Working with contexts/hooks | `typescript-frontend-patterns` |
 | Working with App Router | `nextjs-16` |
 | Working with Radix UI + Tailwind | `radix-tailwind` |
-| Working with tariffs UI | `msia-tariffs` |
 | TypeScript/React patterns | `typescript-frontend-patterns` |
 
 ## Tech Stack
@@ -488,12 +487,9 @@ return (
 
 | Skill | When to Use |
 |-------|-------------|
-| `msia-admin` | Working on pages, components, contexts, hooks |
 | `nextjs-16` | App Router patterns, route handlers |
 | `radix-tailwind` | UI components, Tailwind styling |
 | `typescript-frontend-patterns` | React patterns, API client, data fetching |
-| `msia-tariffs` | Tariff system UI |
-| `msia-test` | Writing Jest tests |
 
 ### Auto-invoke Skills
 
@@ -502,6 +498,6 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Action | Skill |
 |--------|-------|
 | TypeScript/React patterns | `typescript-frontend-patterns` |
-| Working on admin panel components | `msia-admin` |
+| Working on admin panel components | `radix-tailwind` |
 | Working with Next.js App Router | `nextjs-16` |
 | Working with Radix UI + Tailwind | `radix-tailwind` |

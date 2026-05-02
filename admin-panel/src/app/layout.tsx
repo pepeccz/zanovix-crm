@@ -1,31 +1,38 @@
 import type { Metadata } from "next";
-import { DM_Sans, DM_Mono } from "next/font/google";
+import { Inter, League_Spartan, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
 import { SileoToaster } from "@/components/sileo-toaster";
 import { THEME_INIT_SCRIPT } from "./theme-init";
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter",
   display: "swap",
-  variable: "--font-sans",
-  weight: ["400", "500", "600", "700"],
 });
 
-const dmMono = DM_Mono({
+const leagueSpartan = League_Spartan({
   subsets: ["latin"],
+  weight: ["700", "900"],
+  variable: "--font-league-spartan",
   display: "swap",
-  variable: "--font-mono",
-  weight: ["400", "500"],
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "MSI-a Admin Panel",
-  description: "Panel de administracion para MSI Automotive",
+  title: "Zanovix CRM",
+  description: "Panel de gestión de leads y oportunidades",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo-isotipo.png",
+    apple: "/logo-isotipo.png",
   },
 };
 
@@ -43,7 +50,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
       </head>
-      <body className={`${dmSans.variable} ${dmMono.variable} font-sans`}>
+      <body className={`${inter.variable} ${leagueSpartan.variable} ${jetbrains.variable} font-sans antialiased`}>
         <AuthProvider>
           <SidebarProvider>{children}</SidebarProvider>
         </AuthProvider>

@@ -10,10 +10,24 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
+        display: ["var(--font-league-spartan)", "system-ui", "sans-serif"],
       },
       colors: {
+        // Zanovix brand tokens
+        "bg-dark": "#0a1a14",
+        "bg-dark-2": "#0d2019",
+        "bg-light": "#f0f4f2",
+        "bg-white": "#ffffff",
+        "color-primary": "#3BAA8C",
+        "color-primary-dark": "#2d8a70",
+        "color-primary-light": "#5bc4a8",
+        "text-primary": "#0a1a14",
+        "text-light": "#f0f4f2",
+        "text-muted": "#6b7c75",
+        "border-dark": "#1a2e24",
+        "border-light": "#d1dbd6",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -74,6 +88,7 @@ const config: Config = {
         },
       },
       borderRadius: {
+        DEFAULT: "0.5rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",

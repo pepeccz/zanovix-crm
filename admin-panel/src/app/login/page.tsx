@@ -37,21 +37,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#00334d]/5 via-white to-[#01afa9]/10 p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-bg-dark p-4">
+      {/* Subtle radial primary glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3BAA8C] opacity-5 blur-3xl" />
+      </div>
+
+      <Card className="relative w-full max-w-md border-border-dark bg-bg-dark-2 text-text-light">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4">
             <Image
-              src="/logo.png"
+              src="/logo-full-white.png"
               width={180}
               height={60}
-              alt="MSI Automotive"
+              alt="Zanovix"
               className="object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold">Panel Administrativo</CardTitle>
-          <CardDescription>
-            Ingresa tus credenciales para acceder al panel
+          <CardTitle className="font-display text-2xl font-bold tracking-tight">
+            Bienvenido
+          </CardTitle>
+          <CardDescription className="text-text-muted">
+            Accede al panel de gestión de Zanovix CRM
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -63,7 +70,9 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-text-light">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -73,11 +82,14 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 disabled={isLoading}
+                className="border-border-dark bg-bg-dark text-text-light placeholder:text-text-muted"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contrasena</Label>
+              <Label htmlFor="password" className="text-text-light">
+                Contraseña
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -86,17 +98,22 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="border-border-dark bg-bg-dark text-text-light placeholder:text-text-muted"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full transition-shadow hover:shadow-[0_0_30px_rgba(59,170,140,0.3)]"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Iniciando sesion...
+                  Iniciando sesión...
                 </>
               ) : (
-                "Iniciar Sesion"
+                "Iniciar sesión"
               )}
             </Button>
           </form>

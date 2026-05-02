@@ -157,7 +157,7 @@ function SidebarInner({
           )}
         >
           <Image
-            src="/logo.png"
+            src={isCollapsed ? "/logo-isotipo.png" : "/logo-full-white.png"}
             width={isCollapsed ? 40 : 120}
             height={isCollapsed ? 40 : 40}
             alt="Zanovix CRM"
