@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, League_Spartan, JetBrains_Mono } from "next/font/google";
+import { Inter, Newsreader, League_Spartan, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
@@ -8,8 +8,16 @@ import { THEME_INIT_SCRIPT } from "./theme-init";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
@@ -42,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className={`${inter.variable} ${newsreader.variable} ${leagueSpartan.variable} ${jetbrains.variable}`}>
       <head>
         {/* FOUC prevention: apply theme before first paint */}
         {/* Hash pinned in next.config.ts — see src/__tests__/csp-hash.test.ts for drift detection */}
@@ -50,7 +58,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
       </head>
-      <body className={`${inter.variable} ${leagueSpartan.variable} ${jetbrains.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <AuthProvider>
           <SidebarProvider>{children}</SidebarProvider>
         </AuthProvider>

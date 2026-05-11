@@ -4,51 +4,87 @@
 
 @layer base {
   :root {
-    --background: 150 25% 95%;
-    --foreground: 150 40% 7%;
-    --card: 0 0% 100%;
-    --card-foreground: 150 40% 7%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 150 40% 7%;
-    --primary: 161 49% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 150 30% 90%;
-    --secondary-foreground: 150 40% 7%;
-    --muted: 150 15% 88%;
-    --muted-foreground: 150 8% 45%;
-    --accent: 161 49% 56%;
-    --accent-foreground: 150 40% 7%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 150 20% 84%;
-    --input: 150 20% 84%;
-    --ring: 161 49% 45%;
-    --radius: 0.5rem;
-    --sidebar-background: 150 25% 97%;
-    --sidebar-foreground: 150 40% 7%;
-    --sidebar-primary: 161 49% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 161 49% 94%;
-    --sidebar-accent-foreground: 150 40% 7%;
-    --sidebar-border: 150 20% 84%;
-    --sidebar-ring: 161 49% 45%;
+    /* ─── Zanovix raw brand tokens ─────────────────────────────────────── */
+    --zx-paper:       #F4F1EA;
+    --zx-paper-2:     #ECE6D6;
+    --zx-ink:         #1F2A26;
+    --zx-ink-soft:    #3B463F;
+    --zx-ink-mute:    rgba(31,42,38,0.55);
+    --zx-rule:        rgba(31,42,38,0.14);
+    --zx-night:       #14201B;
+    --zx-green:       #2E8169;
+    --zx-green-dark:  #1F5B49;
+    --zx-green-light: #6BBF96;
+    --zx-terra:       #B85F3D;
 
-    /* Status color tokens (AD-6) — light mode */
-    --status-success: 142 71% 45%;
+    /* ─── Zanovix status aliases ────────────────────────────────────────── */
+    --zx-status-active:  #2E8169;
+    --zx-status-pending: #B85F3D;
+    --zx-status-overdue: #cc3c28;
+    --zx-status-neutral: rgba(31,42,38,0.5);
+
+    /* ─── shadcn HSL channel vars — remapped to Zanovix brand (ADR-5) ─── */
+    /* #F4F1EA → 40 36% 94% */
+    --background:           40 36% 94%;
+    /* #1F2A26 → 156 16% 14% */
+    --foreground:           156 16% 14%;
+    /* #F4F1EA → 40 36% 94% */
+    --card:                 40 36% 94%;
+    --card-foreground:      156 16% 14%;
+    /* #ECE6D6 → 43 33% 88% */
+    --popover:              43 33% 88%;
+    --popover-foreground:   156 16% 14%;
+    /* #2E8169 → 162 47% 34% */
+    --primary:              162 47% 34%;
+    /* #F4F1EA → 40 36% 94% */
+    --primary-foreground:   40 36% 94%;
+    /* #ECE6D6 → 43 33% 88% */
+    --secondary:            43 33% 88%;
+    --secondary-foreground: 156 16% 14%;
+    --muted:                43 33% 88%;
+    /* #3B463F → 156 9% 25% */
+    --muted-foreground:     156 9% 25%;
+    /* #6BBF96 → 150 41% 59% */
+    --accent:               150 41% 59%;
+    --accent-foreground:    156 16% 14%;
+    /* #cc3c28 → 7 67% 48% */
+    --destructive:          7 67% 48%;
+    --destructive-foreground: 40 36% 94%;
+    /* rgba(31,42,38,0.14) ≈ #D8DAD9 → 156 5% 85% */
+    --border:               156 5% 85%;
+    --input:                156 5% 85%;
+    /* #2E8169 → 162 47% 34% */
+    --ring:                 162 47% 34%;
+    /* shadcn internal — kept for compatibility; Tailwind theme override wins */
+    --radius:               0.5rem;
+
+    /* ─── Sidebar vars ──────────────────────────────────────────────────── */
+    --sidebar-background:          40 36% 94%;
+    --sidebar-foreground:          156 16% 14%;
+    --sidebar-primary:             162 47% 34%;
+    --sidebar-primary-foreground:  40 36% 94%;
+    --sidebar-accent:              43 33% 88%;
+    --sidebar-accent-foreground:   156 16% 14%;
+    --sidebar-border:              156 5% 85%;
+    --sidebar-ring:                162 47% 34%;
+
+    /* ─── Status color tokens (AD-6) — light mode — kept as-is ─────────── */
+    --status-success:           142 71% 45%;
     --status-success-foreground: 0 0% 100%;
-    --status-warning: 38 92% 50%;
+    --status-warning:           38 92% 50%;
     --status-warning-foreground: 0 0% 100%;
-    --status-error: 0 84% 60%;
-    --status-error-foreground: 0 0% 100%;
-    --status-info: 217 91% 60%;
-    --status-info-foreground: 0 0% 100%;
-    --status-pending: 262 83% 58%;
+    --status-error:             0 84% 60%;
+    --status-error-foreground:  0 0% 100%;
+    --status-info:              217 91% 60%;
+    --status-info-foreground:   0 0% 100%;
+    --status-pending:           262 83% 58%;
     --status-pending-foreground: 0 0% 100%;
-    --status-neutral: 240 5% 65%;
+    --status-neutral:           240 5% 65%;
     --status-neutral-foreground: 0 0% 100%;
   }
 
   .dark {
+    /* TODO(brand-v2): dark mode palette pending — Zanovix has no canonical dark spec yet */
     --background: 150 40% 7%;
     --foreground: 150 25% 95%;
     --card: 150 35% 11%;
@@ -99,5 +135,7 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    background-image: radial-gradient(rgba(31,42,38,0.05) 1px, transparent 1px);
+    background-size: 6px 6px;
   }
 }

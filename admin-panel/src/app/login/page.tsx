@@ -37,13 +37,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg-dark p-4">
+    <div className="flex min-h-screen items-center justify-center bg-zx-night p-4">
       {/* Subtle radial primary glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3BAA8C] opacity-5 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-zx-green opacity-5 blur-3xl" />
       </div>
 
-      <Card className="relative w-full max-w-md border-border-dark bg-bg-dark-2 text-text-light">
+      <Card className="relative w-full max-w-md border-zx-rule bg-zx-ink text-zx-paper">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4">
             <Image
@@ -57,7 +57,7 @@ export default function LoginPage() {
           <CardTitle className="font-display text-2xl font-bold tracking-tight">
             Bienvenido
           </CardTitle>
-          <CardDescription className="text-text-muted">
+          <CardDescription className="text-zx-paper/60">
             Accede al panel de gestión de Zanovix CRM
           </CardDescription>
         </CardHeader>
@@ -70,7 +70,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-text-light">
+              <Label htmlFor="email" className="text-zx-paper">
                 Email
               </Label>
               <Input
@@ -82,12 +82,12 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 disabled={isLoading}
-                className="border-border-dark bg-bg-dark text-text-light placeholder:text-text-muted"
+                className="border-zx-rule bg-zx-night text-zx-paper placeholder:text-zx-paper/60"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-text-light">
+              <Label htmlFor="password" className="text-zx-paper">
                 Contraseña
               </Label>
               <Input
@@ -98,13 +98,13 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="border-border-dark bg-bg-dark text-text-light placeholder:text-text-muted"
+                className="border-zx-rule bg-zx-night text-zx-paper placeholder:text-zx-paper/60"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full transition-shadow hover:shadow-[0_0_30px_rgba(59,170,140,0.3)]"
+              className="w-full transition-shadow hover:shadow-[0_0_30px_rgba(46,129,105,0.3)]"
               disabled={isLoading}
             >
               {isLoading ? (
