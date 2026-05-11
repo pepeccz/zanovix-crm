@@ -24,5 +24,13 @@ const customJestConfig = {
   ],
 }
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(customJestConfig)
+// next/jest sets transformIgnorePatterns that match all of node_modules. next-intl
+// ships ESM, so we override after createJestConfig resolves to allow it through Babel.
+module.exports = async () => {
+  const jestConfig = await createJestConfig(customJestConfig)()
+  jestConfig.transformIgnorePatterns = [
+    '/node_modules/(?!(next-intl|use-intl)/)',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ]
+  return jestConfig
+}
