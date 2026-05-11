@@ -124,6 +124,11 @@
     "cdocs": {
       "title": "Shared documents",
       "lede": "Deliverables, DPAs, impact assessments and manuals."
+    },
+    "settings": {
+      "eyebrow": "settings",
+      "title": "Settings",
+      "subtitle": "System and preferences."
     }
   },
   "kpi": {

@@ -124,6 +124,11 @@
     "cdocs": {
       "title": "Documentos compartidos",
       "lede": "Entregables, DPAs, evaluaciones de impacto y manuales."
+    },
+    "settings": {
+      "eyebrow": "ajustes",
+      "title": "Configuración",
+      "subtitle": "Sistema y preferencias."
     }
   },
   "kpi": {
