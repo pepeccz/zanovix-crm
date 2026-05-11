@@ -1,0 +1,136 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "pipeline": "Pipeline",
+    "clients": "Clientes",
+    "services": "Servicios",
+    "billing": "Facturación",
+    "calendar": "Calendario",
+    "team": "Equipo",
+    "settings": "Ajustes",
+    "my_diagnostic": "Mi diagnóstico",
+    "projects": "Proyectos",
+    "formation": "Formación",
+    "documents": "Documentos",
+    "meetings": "Reuniones",
+    "support": "Soporte",
+    "chat": "Mensajes"
+  },
+  "shell": {
+    "switch_view": "Cambiar vista",
+    "view_internal": "Vista interna",
+    "view_client": "Portal cliente",
+    "role": "Rol",
+    "search": "Buscar clientes, servicios, facturas…",
+    "new": "Nuevo"
+  },
+  "status": {
+    "lead": "Lead",
+    "discovery_scheduled": "Discovery agendada",
+    "discovery_done": "Discovery realizada",
+    "proposal_sent": "Propuesta enviada",
+    "active": "Cliente activo",
+    "lost": "Perdido",
+    "in_progress": "En curso",
+    "scoping": "Definiendo alcance",
+    "development": "Desarrollo",
+    "review": "En revisión",
+    "delivered": "Entregado",
+    "maintenance": "Mantenimiento",
+    "paused": "Pausado",
+    "scheduled": "Planificada",
+    "completed": "Completada",
+    "paid": "Pagada",
+    "pending": "Pendiente",
+    "overdue": "Vencida",
+    "draft": "Borrador"
+  },
+  "common": {
+    "all": "Todos",
+    "client": "Cliente",
+    "owner": "Responsable",
+    "value": "Valor",
+    "stage": "Etapa",
+    "next": "Próximo paso",
+    "updated": "Actualizado",
+    "actions": "Acciones",
+    "add": "Añadir",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "open": "Abrir",
+    "view": "Ver",
+    "from": "Desde",
+    "until": "Hasta",
+    "month": "/ mes",
+    "onetime": "Pago único",
+    "recurring": "Mensual",
+    "export": "Exportar",
+    "filter": "Filtrar",
+    "this_week": "Esta semana",
+    "this_month": "Este mes",
+    "this_quarter": "Este trimestre",
+    "ytd": "Año en curso"
+  },
+  "svc": {
+    "assessment": "Diagnóstico",
+    "assessment_full": "AI Readiness Assessment",
+    "development": "Desarrollo",
+    "development_full": "Solución a medida",
+    "formation": "Formación",
+    "formation_full": "Programa de formación"
+  },
+  "page": {
+    "dashboard": {
+      "title": "Hoy en Zanovix",
+      "lede": "Lo que merece tu atención antes de las once."
+    },
+    "pipeline": {
+      "title": "Pipeline comercial",
+      "lede": "De primera conversación a entrada al ecosistema."
+    },
+    "clients": {
+      "title": "Clientes y leads",
+      "lede": "Cada fila es una empresa que ha entrado o está entrando al ecosistema."
+    },
+    "billing": {
+      "title": "Facturación",
+      "lede": "Pagos únicos del diagnóstico y desarrollo, recurrentes de mantenimiento y formación."
+    },
+    "calendar": {
+      "title": "Calendario",
+      "lede": "Sincronizado con Google Workspace. Discovery, sesiones de diagnóstico, formación."
+    },
+    "team": {
+      "title": "Equipo",
+      "lede": "Consultores y desarrolladores con acceso al ecosistema."
+    },
+    "cportal": {
+      "title": "Bienvenido al ecosistema",
+      "lede": "Aquí está todo lo que tenemos contigo: diagnóstico, proyectos, formación."
+    },
+    "cdiag": {
+      "title": "Tu diagnóstico",
+      "lede": "El mapa de dónde la IA tiene sentido en tu operación — y dónde no."
+    },
+    "cbilling": {
+      "title": "Tus facturas",
+      "lede": "Pago automático con Stripe o transferencia bancaria mensual."
+    },
+    "cdocs": {
+      "title": "Documentos compartidos",
+      "lede": "Entregables, DPAs, evaluaciones de impacto y manuales."
+    }
+  },
+  "kpi": {
+    "pipeline": "Pipeline activo",
+    "mrr": "MRR mantenimiento",
+    "proposals": "Propuestas pendientes",
+    "diagnostics": "Diagnósticos en curso"
+  },
+  "google": {
+    "synced": "Sincronizado con Google Workspace"
+  },
+  "stripe": {
+    "synced": "Stripe + transferencia bancaria"
+  }
+}
