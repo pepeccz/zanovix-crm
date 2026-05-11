@@ -1,50 +1,28 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import { BrandProvider } from "@/contexts/brand-context";
+import { AppShell } from "@/components/layout/app-shell";
 import { AppBreadcrumb } from "@/components/layout/app-breadcrumb";
+import { AuthGate } from "./_components/auth-gate";
 
-export default function AuthenticatedLayout({
+export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname + window.location.search;
-        sessionStorage.setItem("returnTo", currentPath);
-      }
-      router.replace("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Cargando...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
-        <AppBreadcrumb />
-        <main className="flex-1 overflow-y-auto bg-background">{children}</main>
-      </div>
-    </div>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <BrandProvider>
+        <AuthGate>
+          <AppShell>
+            <AppBreadcrumb />
+            {children}
+          </AppShell>
+        </AuthGate>
+      </BrandProvider>
+    </NextIntlClientProvider>
   );
 }

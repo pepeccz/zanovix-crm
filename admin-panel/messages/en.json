@@ -16,6 +16,11 @@
     "support": "Support",
     "chat": "Messages"
   },
+  "sidebar": {
+    "trabajo": "Work",
+    "personas": "People",
+    "recurrentes": "Recurring"
+  },
   "shell": {
     "switch_view": "Switch view",
     "view_internal": "Internal view",

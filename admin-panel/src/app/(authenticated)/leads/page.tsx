@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -78,6 +79,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function LeadsPage() {
+  const t = useTranslations();
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
@@ -122,8 +124,8 @@ export default function LeadsPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Leads"
-        description={`${total} leads en total`}
+        title={t("page.clients.title")}
+        description={t("page.clients.lede")}
       />
 
       <Card>

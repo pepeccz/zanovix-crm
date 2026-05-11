@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Newsreader, League_Spartan, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { getLocale } from "next-intl/server";
 import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
 import { SileoToaster } from "@/components/sileo-toaster";
@@ -44,13 +45,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="es" suppressHydrationWarning className={`${inter.variable} ${newsreader.variable} ${leagueSpartan.variable} ${jetbrains.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${newsreader.variable} ${leagueSpartan.variable} ${jetbrains.variable}`}>
       <head>
         {/* FOUC prevention: apply theme before first paint */}
         {/* Hash pinned in next.config.ts — see src/__tests__/csp-hash.test.ts for drift detection */}
