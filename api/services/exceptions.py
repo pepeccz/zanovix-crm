@@ -63,3 +63,99 @@ class UnauthorizedLeadAccessError(Exception):
     def __init__(self, lead_id: object | None = None) -> None:
         self.lead_id = lead_id
         super().__init__(f"Unauthorized access to lead: {lead_id}")
+
+
+# ---------------------------------------------------------------------------
+# Client-domain exceptions (crm-core-domain slice)
+# ---------------------------------------------------------------------------
+
+
+class ClientNotFoundError(Exception):
+    """Raised when a Client cannot be found, or is outside the user's ownership scope.
+
+    Using a single exception for both cases prevents leaking client existence to
+    unauthorized requesters — mirrors LeadNotFoundError pattern (spec REQ-14-C).
+    """
+
+    def __init__(self, client_id: object | None = None) -> None:
+        self.client_id = client_id
+        super().__init__(f"Client not found: {client_id}")
+
+
+class ServiceNotFoundError(Exception):
+    """Raised when a Service cannot be found, or the requester has no access to it.
+
+    Consultor accessing another owner's service receives 404, not 403, to avoid
+    leaking existence (spec REQ-14-C).
+    """
+
+    def __init__(self, service_id: object | None = None) -> None:
+        self.service_id = service_id
+        super().__init__(f"Service not found: {service_id}")
+
+
+class ContactNotFoundError(Exception):
+    """Raised when a Contact cannot be found under the given client."""
+
+    def __init__(self, contact_id: object | None = None) -> None:
+        self.contact_id = contact_id
+        super().__init__(f"Contact not found: {contact_id}")
+
+
+class MilestoneNotFoundError(Exception):
+    """Raised when a Milestone cannot be found by (service_id, n)."""
+
+    def __init__(self, service_id: object | None = None, n: object | None = None) -> None:
+        self.service_id = service_id
+        self.n = n
+        super().__init__(f"Milestone not found: service={service_id}, n={n}")
+
+
+class CannotCreateOnLostClientError(Exception):
+    """Raised when attempting to create a Service under a client with stage='lost'.
+
+    Maps to HTTP 422 with body {\"error\": \"client_is_lost\"} (spec REQ-16).
+    """
+
+    def __init__(self, client_id: object | None = None) -> None:
+        self.client_id = client_id
+        super().__init__(f"Cannot create service on a lost client: {client_id}")
+
+
+class LeadAlreadyConvertedError(Exception):
+    """Raised when a lead has already been converted to a client.
+
+    Maps to HTTP 409 (spec REQ-13-C).
+    """
+
+    def __init__(self, lead_id: object | None = None, client_id: object | None = None) -> None:
+        self.lead_id = lead_id
+        self.client_id = client_id
+        super().__init__(f"Lead {lead_id} already converted to client {client_id}")
+
+
+class LeadNotQualifiedError(Exception):
+    """Raised when a lead's status is not 'qualified' at conversion time.
+
+    Maps to HTTP 422 with body {\"error\": \"lead_not_qualified\"} (spec REQ-13-B).
+    """
+
+    def __init__(self, lead_id: object | None = None, current_status: str | None = None) -> None:
+        self.lead_id = lead_id
+        self.current_status = current_status
+        super().__init__(
+            f"Lead {lead_id} is not qualified for conversion (status={current_status})"
+        )
+
+
+class RBACForbiddenError(Exception):
+    """Raised when a user's role does not permit the requested action.
+
+    Maps to HTTP 403. Distinct from 404-style existence-hiding — only raised when the
+    resource exists and is visible but the verb is not permitted (e.g. consultor → create client).
+    """
+
+    def __init__(self, action: str | None = None, role: str | None = None) -> None:
+        self.action = action
+        self.role = role
+        super().__init__(f"Role '{role}' is not permitted to perform '{action}'")
