@@ -81,26 +81,25 @@ describe("LocaleToggle — active state", () => {
 });
 
 describe("LocaleToggle — click interaction", () => {
+  let cookieStore = "";
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset document.cookie before each test
+    cookieStore = "";
     Object.defineProperty(document, "cookie", {
-      writable: true,
-      value: "",
+      configurable: true,
+      get: () => cookieStore,
+      set: (val: string) => {
+        cookieStore = val;
+      },
     });
   });
 
   it("clicking EN button writes zx-locale=en to document.cookie", () => {
-    const cookieSpy = jest.spyOn(document, "cookie", "set");
     renderToggle("es");
-
     const enBtn = screen.getByRole("button", { name: /en/i });
     fireEvent.click(enBtn);
-
-    expect(cookieSpy).toHaveBeenCalledWith(
-      expect.stringContaining("zx-locale=en")
-    );
-    cookieSpy.mockRestore();
+    expect(cookieStore).toContain("zx-locale=en");
   });
 
   it("clicking EN button calls router.refresh()", () => {

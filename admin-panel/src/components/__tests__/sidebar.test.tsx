@@ -18,16 +18,22 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("next-intl", () => {
-  const messages: Record<string, Record<string, string>> = {
-    nav: { dashboard: "Dashboard", leads: "Leads", users: "Users", settings: "Settings" },
-    sidebar: { trabajo: "Trabajo", personas: "Personas", recurrentes: "Recurrentes" },
-    brand: { wordmark: "Zanovix" },
+  const dict: Record<string, string> = {
+    "nav.dashboard": "Dashboard",
+    "nav.clients": "Clientes",
+    "nav.team": "Equipo",
+    "nav.settings": "Ajustes",
+    "sidebar.trabajo": "Trabajo",
+    "sidebar.personas": "Personas",
+    "sidebar.recurrentes": "Recurrentes",
+    "google.synced": "Google sincronizado",
+    "stripe.synced": "Stripe sincronizado",
   };
   return {
     useLocale: () => "es",
     useTranslations: (namespace?: string) => (key: string) => {
-      if (namespace && messages[namespace]?.[key]) return messages[namespace][key];
-      return key;
+      const full = namespace ? `${namespace}.${key}` : key;
+      return dict[full] ?? dict[key] ?? full;
     },
     NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   };
