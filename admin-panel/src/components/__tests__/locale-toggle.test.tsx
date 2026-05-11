@@ -7,15 +7,25 @@
  */
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { NextIntlClientProvider } from "next-intl";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
+// next-intl ships pure ESM; mock it to avoid Jest transform chain issues.
 
 const mockRefresh = jest.fn();
+let currentLocale: "es" | "en" = "es";
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mockRefresh }),
   usePathname: () => "/dashboard",
+}));
+
+jest.mock("next-intl", () => ({
+  useLocale: () => currentLocale,
+  useTranslations: () => (key: string) => {
+    const map: Record<string, string> = { langES: "ES", langEN: "EN" };
+    return map[key] ?? key;
+  },
+  NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Import AFTER mocks
@@ -23,16 +33,9 @@ import { LocaleToggle } from "../layout/locale-toggle";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const messages = {
-  topbar: { langES: "ES", langEN: "EN" },
-};
-
 function renderToggle(locale: "es" | "en" = "es") {
-  return render(
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <LocaleToggle />
-    </NextIntlClientProvider>
-  );
+  currentLocale = locale;
+  return render(<LocaleToggle />);
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────

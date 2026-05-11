@@ -8,14 +8,30 @@
  */
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { NextIntlClientProvider } from "next-intl";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
+// next-intl ships pure ESM; mock it instead of relying on the Jest ESM transform chain.
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
   usePathname: () => "/dashboard",
 }));
+
+jest.mock("next-intl", () => {
+  const messages: Record<string, Record<string, string>> = {
+    nav: { dashboard: "Dashboard", leads: "Leads", users: "Users", settings: "Settings" },
+    sidebar: { trabajo: "Trabajo", personas: "Personas", recurrentes: "Recurrentes" },
+    brand: { wordmark: "Zanovix" },
+  };
+  return {
+    useLocale: () => "es",
+    useTranslations: (namespace?: string) => (key: string) => {
+      if (namespace && messages[namespace]?.[key]) return messages[namespace][key];
+      return key;
+    },
+    NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
 
 jest.mock("next/image", () => {
   const MockImage = ({
@@ -54,32 +70,10 @@ jest.mock("next/link", () => {
 // Import AFTER mocks
 import { Sidebar } from "../layout/sidebar";
 
-// ─── Messages fixture ─────────────────────────────────────────────────────────
-
-const messages = {
-  nav: {
-    dashboard: "Dashboard",
-    clients: "Clientes",
-    team: "Equipo",
-    settings: "Ajustes",
-  },
-  sidebar: {
-    trabajo: "Trabajo",
-    personas: "Personas",
-    recurrentes: "Recurrentes",
-  },
-  google: { synced: "Google sincronizado" },
-  stripe: { synced: "Stripe sincronizado" },
-};
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function renderSidebar() {
-  return render(
-    <NextIntlClientProvider locale="es" messages={messages}>
-      <Sidebar />
-    </NextIntlClientProvider>
-  );
+  return render(<Sidebar />);
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
