@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from api.errors import register_domain_error_handlers
 from api.routes import admin
-from api.routes import leads
+from api.routes import clients, contacts, leads, milestones, services
 from shared.config import get_settings
 from shared.logging_config import configure_logging
 from shared.fastapi_errors import register_error_handlers
@@ -48,6 +48,10 @@ register_domain_error_handlers(app)
 # Routers
 app.include_router(admin.router)
 app.include_router(leads.router, prefix="/api")
+app.include_router(clients.router, prefix="/api")
+app.include_router(contacts.router, prefix="/api")
+app.include_router(services.router, prefix="/api")
+app.include_router(milestones.router, prefix="/api")
 
 
 @app.get("/health")

@@ -26,6 +26,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.auth import get_current_user, require_role
 from api.domain.payload_sanitizer import build_raw_payload
 from api.middleware.rate_limit import enforce_lead_post_rate_limit
+from api.schemas.client import ClientRead
+from api.schemas.convert_lead import ConvertLeadBody
 from api.schemas.lead import (
     LeadAssign,
     LeadCreate,
@@ -34,6 +36,7 @@ from api.schemas.lead import (
     LeadRead,
     LeadStatusUpdate,
 )
+from api.services.client_service import ClientService
 from api.services.exceptions import InvalidTransitionError, LeadNotFoundError
 from api.services.lead_service import LeadService
 from database.connection import get_async_session
@@ -274,3 +277,36 @@ async def assign_lead(
 
     await session.commit()
     return LeadRead.model_validate(lead)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/leads/{id}/convert  — admin + comercial (REQ-13)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/leads/{lead_id}/convert",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ClientRead,
+    summary="Convert a qualified lead into a client (admin + comercial)",
+)
+async def convert_lead(
+    lead_id: uuid.UUID,
+    body: ConvertLeadBody,
+    session: AsyncSession = Depends(_get_session),
+    current_user: User = Depends(require_role("admin", "comercial")),
+) -> ClientRead:
+    """
+    Atomically convert a qualified lead to a client (REQ-13).
+
+    - 404 if lead not found.
+    - 422 if lead.status != 'qualified'.
+    - 409 if lead already converted (returns existing client_id).
+    - 201 + ClientRead on success.
+
+    Body fields override lead data; absent fields fall back to lead.company / lead.name.
+    """
+    svc = ClientService(session)
+    client = await svc.convert_from_lead(lead_id, body, current_user.id)
+    await session.commit()
+    return ClientRead.model_validate(client)

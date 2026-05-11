@@ -56,6 +56,7 @@ class ServiceFilters(BaseModel):
     state: str | None = None
     client_id: uuid.UUID | None = None
     owner_id: uuid.UUID | None = None
+    type: str | None = Field(default=None, description="One of: assessment, development, formation")
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
 
