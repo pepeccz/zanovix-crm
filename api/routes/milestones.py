@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user, require_role
@@ -125,6 +125,7 @@ async def update_milestone(
 @router.delete(
     "/services/{service_id}/milestones/{n}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     summary="Delete a milestone by ordering index (admin only)",
 )
 async def delete_milestone(
@@ -132,8 +133,9 @@ async def delete_milestone(
     n: int,
     session: AsyncSession = Depends(_get_session),
     current_user: User = Depends(require_role("admin")),
-) -> None:
+) -> Response:
     """Delete a milestone by (service_id, n). Admin only."""
     svc = MilestoneService(session)
     await svc.delete(service_id, n)
     await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

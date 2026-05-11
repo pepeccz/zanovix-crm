@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user, require_role
@@ -128,6 +128,7 @@ async def update_contact(
 @router.delete(
     "/clients/{client_id}/contacts/{contact_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     summary="Delete a contact (admin only)",
 )
 async def delete_contact(
@@ -135,8 +136,9 @@ async def delete_contact(
     contact_id: uuid.UUID,
     session: AsyncSession = Depends(_get_session),
     current_user: User = Depends(require_role("admin")),
-) -> None:
+) -> Response:
     """Delete a contact by ID. Admin only."""
     svc = ContactService(session)
     await svc.delete_contact(client_id, contact_id)
     await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
