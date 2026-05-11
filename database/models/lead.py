@@ -74,4 +74,10 @@ class Lead(Base):
         JSONB, nullable=False, default=dict
     )
 
+    converted_client_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     owner: Mapped[User | None] = relationship("User", lazy="selectin")
