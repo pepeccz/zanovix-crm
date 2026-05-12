@@ -158,6 +158,58 @@
       "eyebrow": "settings",
       "title": "Settings",
       "subtitle": "System and preferences."
+    },
+    "clients": {
+      "eyebrow": "the ecosystem",
+      "title": "Clients",
+      "lede": "Each row is a company that has entered — or is entering — the ecosystem.",
+      "table": {
+        "name": "Client",
+        "stage": "Stage",
+        "owner": "Owner",
+        "mrr": "MRR",
+        "next_milestone": "Next milestone",
+        "contacts": "Contacts"
+      },
+      "filter": {
+        "allStages": "All stages",
+        "allSectors": "All sectors",
+        "allOwners": "All owners"
+      },
+      "search": {
+        "placeholder": "Search client…"
+      },
+      "empty": {
+        "title": "No clients",
+        "description": "No clients match the current filters."
+      },
+      "error": {
+        "title": "Failed to load clients"
+      }
+    },
+    "client_detail": {
+      "breadcrumb": "Clients",
+      "section": {
+        "contacts": "Contacts",
+        "services": "Active services",
+        "activity": "Recent activity"
+      },
+      "actions": {
+        "changeStage": "Change stage"
+      },
+      "emptyContacts": "No contacts on record.",
+      "emptyServices": "No services yet. Conversation is in pipeline.",
+      "emptyActivity": "No recent activity."
+    }
+  },
+  "dialog": {
+    "stageTransition": {
+      "trigger": "Change stage",
+      "title": "Change client stage",
+      "description": "Select the next stage for this client.",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error": "Could not change stage"
     }
   },
   "kpi": {

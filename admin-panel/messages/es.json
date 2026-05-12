@@ -158,6 +158,58 @@
       "eyebrow": "ajustes",
       "title": "Configuración",
       "subtitle": "Sistema y preferencias."
+    },
+    "clients": {
+      "eyebrow": "el ecosistema",
+      "title": "Clientes",
+      "lede": "Cada fila es una empresa que ha entrado o está entrando al ecosistema.",
+      "table": {
+        "name": "Cliente",
+        "stage": "Etapa",
+        "owner": "Responsable",
+        "mrr": "MRR",
+        "next_milestone": "Próximo hito",
+        "contacts": "Contactos"
+      },
+      "filter": {
+        "allStages": "Todas las etapas",
+        "allSectors": "Todos los sectores",
+        "allOwners": "Todos los responsables"
+      },
+      "search": {
+        "placeholder": "Buscar cliente…"
+      },
+      "empty": {
+        "title": "Sin clientes",
+        "description": "No hay clientes que coincidan con los filtros aplicados."
+      },
+      "error": {
+        "title": "Error al cargar los clientes"
+      }
+    },
+    "client_detail": {
+      "breadcrumb": "Clientes",
+      "section": {
+        "contacts": "Contactos",
+        "services": "Servicios activos",
+        "activity": "Actividad reciente"
+      },
+      "actions": {
+        "changeStage": "Cambiar etapa"
+      },
+      "emptyContacts": "Sin contactos registrados.",
+      "emptyServices": "Aún sin servicios. La conversación está en pipeline.",
+      "emptyActivity": "Sin actividad reciente."
+    }
+  },
+  "dialog": {
+    "stageTransition": {
+      "trigger": "Cambiar etapa",
+      "title": "Cambiar etapa del cliente",
+      "description": "Selecciona la siguiente etapa para este cliente.",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "error": "No se pudo cambiar la etapa"
     }
   },
   "kpi": {
