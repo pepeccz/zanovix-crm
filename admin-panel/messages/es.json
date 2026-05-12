@@ -38,9 +38,11 @@
     "lost": "Perdido",
     "in_progress": "En curso",
     "scoping": "Definiendo alcance",
+    "running": "En ejecución",
     "development": "Desarrollo",
     "review": "En revisión",
     "delivered": "Entregado",
+    "won": "Ganado",
     "maintenance": "Mantenimiento",
     "paused": "Pausado",
     "scheduled": "Planificada",
@@ -49,6 +51,33 @@
     "pending": "Pendiente",
     "overdue": "Vencida",
     "draft": "Borrador"
+  },
+  "serviceType": {
+    "assessment": "Diagnóstico",
+    "development": "Desarrollo",
+    "formation": "Formación"
+  },
+  "activity": {
+    "stage_change": "Etapa actualizada",
+    "contact_added": "Contacto añadido",
+    "contact_updated": "Contacto actualizado",
+    "service_started": "Servicio iniciado",
+    "service_state_change": "Estado de servicio actualizado",
+    "milestone_completed": "Hito completado",
+    "lead_converted": "Lead convertido a cliente",
+    "note": "Nota registrada"
+  },
+  "pagination": {
+    "showing": "Mostrando",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "of": "de"
+  },
+  "empty": {
+    "noResults": "Sin resultados",
+    "noClients": "No hay clientes",
+    "noServices": "No hay servicios",
+    "noActivity": "Sin actividad reciente"
   },
   "common": {
     "all": "Todos",

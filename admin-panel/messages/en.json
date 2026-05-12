@@ -38,9 +38,11 @@
     "lost": "Lost",
     "in_progress": "In progress",
     "scoping": "Scoping",
+    "running": "Running",
     "development": "Development",
     "review": "In review",
     "delivered": "Delivered",
+    "won": "Won",
     "maintenance": "Maintenance",
     "paused": "Paused",
     "scheduled": "Scheduled",
@@ -49,6 +51,33 @@
     "pending": "Pending",
     "overdue": "Overdue",
     "draft": "Draft"
+  },
+  "serviceType": {
+    "assessment": "Diagnostic",
+    "development": "Development",
+    "formation": "Training"
+  },
+  "activity": {
+    "stage_change": "Stage updated",
+    "contact_added": "Contact added",
+    "contact_updated": "Contact updated",
+    "service_started": "Service started",
+    "service_state_change": "Service state updated",
+    "milestone_completed": "Milestone completed",
+    "lead_converted": "Lead converted to client",
+    "note": "Note recorded"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "prev": "Previous",
+    "next": "Next",
+    "of": "of"
+  },
+  "empty": {
+    "noResults": "No results",
+    "noClients": "No clients",
+    "noServices": "No services",
+    "noActivity": "No recent activity"
   },
   "common": {
     "all": "All",
