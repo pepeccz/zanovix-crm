@@ -231,6 +231,32 @@
       "emptyContacts": "No contacts on record.",
       "emptyServices": "No services yet. Conversation is in pipeline.",
       "emptyActivity": "No recent activity."
+    },
+    "service_detail": {
+      "eyebrow": "service",
+      "breadcrumb": "Client",
+      "section": {
+        "milestones": "Service milestones",
+        "score": "Maturity score",
+        "client": "Client",
+        "activity": "Recent activity"
+      },
+      "actions": {
+        "changeState": "Change state"
+      },
+      "milestone": {
+        "complete": "Complete",
+        "dueDate": "Due date",
+        "completed": "Completed on",
+        "errorToggle": "Could not update milestone"
+      },
+      "score": {
+        "outOf": "of 100 · Zanovix scale"
+      },
+      "emptyMilestones": "No milestones recorded for this service.",
+      "emptyActivity": "No recent activity.",
+      "viewClient": "View client",
+      "errorLoad": "Failed to load service"
     }
   },
   "dialog": {
@@ -241,6 +267,14 @@
       "confirm": "Confirm",
       "cancel": "Cancel",
       "error": "Could not change stage"
+    },
+    "serviceStateTransition": {
+      "trigger": "Change state",
+      "title": "Change service state",
+      "description": "Select the next state for this service.",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error": "Could not change state"
     }
   },
   "stage": {

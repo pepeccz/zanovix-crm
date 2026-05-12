@@ -231,6 +231,32 @@
       "emptyContacts": "Sin contactos registrados.",
       "emptyServices": "Aún sin servicios. La conversación está en pipeline.",
       "emptyActivity": "Sin actividad reciente."
+    },
+    "service_detail": {
+      "eyebrow": "servicio",
+      "breadcrumb": "Cliente",
+      "section": {
+        "milestones": "Hitos del servicio",
+        "score": "Score de madurez",
+        "client": "Cliente",
+        "activity": "Actividad reciente"
+      },
+      "actions": {
+        "changeState": "Cambiar estado"
+      },
+      "milestone": {
+        "complete": "Completar",
+        "dueDate": "Fecha límite",
+        "completed": "Completado",
+        "errorToggle": "No se pudo actualizar el hito"
+      },
+      "score": {
+        "outOf": "de 100 · escala Zanovix"
+      },
+      "emptyMilestones": "Sin hitos registrados para este servicio.",
+      "emptyActivity": "Sin actividad reciente.",
+      "viewClient": "Ver cliente",
+      "errorLoad": "Error al cargar el servicio"
     }
   },
   "dialog": {
@@ -241,6 +267,14 @@
       "confirm": "Confirmar",
       "cancel": "Cancelar",
       "error": "No se pudo cambiar la etapa"
+    },
+    "serviceStateTransition": {
+      "trigger": "Cambiar estado",
+      "title": "Cambiar estado del servicio",
+      "description": "Selecciona el siguiente estado para este servicio.",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "error": "No se pudo cambiar el estado"
     }
   },
   "stage": {
