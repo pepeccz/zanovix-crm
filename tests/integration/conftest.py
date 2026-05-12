@@ -1,16 +1,28 @@
 """
 Integration test fixtures for the CRM API.
 
-Strategy:
+Strategy
+--------
 - Use httpx.AsyncClient with ASGITransport to call the real FastAPI app in-process.
-- Override get_current_user via app.dependency_overrides. Because require_role()
-  closures call Depends(get_current_user) internally, overriding get_current_user
-  is sufficient — role checks work naturally against the injected user's role.
+- Each role-scoped client fixture builds its OWN FastAPI app instance via
+  ``make_role_app(user)`` (see ``_app_factory.py``).  The ``get_current_user``
+  dependency is overridden at construction time on that isolated instance, so
+  concurrent fixtures can never clobber each other's overrides (W01 fix).
 - Real PostgreSQL DB is used (same instance as the app). Rows are deleted between
   tests via an autouse fixture so each test starts with a clean slate.
 - Users are created once per session and reused across all tests in a session.
 
-Environment:
+W01 fix (conftest dependency-override race)
+-------------------------------------------
+Previously, all client fixtures mutated ``app.dependency_overrides`` on the shared
+singleton.  When a test requested both ``admin_client`` and ``consultor_client`` the
+second fixture's ``set`` would overwrite the first, making RBAC assertions unreliable.
+The factory approach gives each fixture its own ``FastAPI`` instance with its own
+``dependency_overrides`` dict.  No cleanup of overrides is needed — the app is
+garbage-collected after the fixture scope ends.
+
+Environment
+-----------
 - Requires DATABASE_URL to point at an accessible PostgreSQL instance.
   Default (docker-compose): postgresql+asyncpg://zanovix:changeme@localhost:5433/zanovix_crm
   Override via DATABASE_URL environment variable before running pytest.
@@ -26,11 +38,11 @@ import pytest
 from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from api.auth import get_current_user
-from api.main import app
+from api.auth import get_current_user  # noqa: F401 — kept for backward compat imports
 from database.models import ActivityLog, Client, Contact, Milestone, Service
 from database.models.user import User
 from shared.config import get_settings
+from tests.integration._app_factory import make_role_app
 
 settings = get_settings()
 
@@ -170,32 +182,23 @@ async def cleanup_crm_rows(test_session_factory) -> AsyncGenerator[None, None]:
 
 
 # ---------------------------------------------------------------------------
-# Role-specific AsyncClient fixtures
+# Role-specific AsyncClient fixtures  (W01 fix — isolated app per role)
 # ---------------------------------------------------------------------------
 #
-# We override get_current_user in app.dependency_overrides.
-# require_role() closures use Depends(get_current_user) internally, so they
-# automatically receive our injected user and check their role against it.
-# No monkey-patching needed.
-
-
-def _make_user_override(user: User):
-    """Build a zero-arg dependency that always returns `user`."""
-
-    async def _override() -> User:
-        return user
-
-    return _override
+# Each fixture builds its own FastAPI app via make_role_app(user).
+# The get_current_user override is set on that isolated instance only, so
+# concurrent fixtures never share or clobber each other's overrides.
+# No cleanup of dependency_overrides is needed — the app is GC'd when the
+# fixture scope ends.
 
 
 @pytest.fixture
 async def admin_client(admin_user: User) -> AsyncGenerator[httpx.AsyncClient, None]:
     """httpx.AsyncClient that authenticates all requests as the admin user."""
-    app.dependency_overrides[get_current_user] = _make_user_override(admin_user)
-    transport = httpx.ASGITransport(app=app)
+    role_app = make_role_app(admin_user)
+    transport = httpx.ASGITransport(app=role_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
-    app.dependency_overrides.pop(get_current_user, None)
 
 
 @pytest.fixture
@@ -203,11 +206,10 @@ async def comercial_client(
     comercial_user: User,
 ) -> AsyncGenerator[httpx.AsyncClient, None]:
     """httpx.AsyncClient authenticated as comercial."""
-    app.dependency_overrides[get_current_user] = _make_user_override(comercial_user)
-    transport = httpx.ASGITransport(app=app)
+    role_app = make_role_app(comercial_user)
+    transport = httpx.ASGITransport(app=role_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
-    app.dependency_overrides.pop(get_current_user, None)
 
 
 @pytest.fixture
@@ -215,11 +217,10 @@ async def consultor_client(
     consultor_user: User,
 ) -> AsyncGenerator[httpx.AsyncClient, None]:
     """httpx.AsyncClient authenticated as consultor."""
-    app.dependency_overrides[get_current_user] = _make_user_override(consultor_user)
-    transport = httpx.ASGITransport(app=app)
+    role_app = make_role_app(consultor_user)
+    transport = httpx.ASGITransport(app=role_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
-    app.dependency_overrides.pop(get_current_user, None)
 
 
 @pytest.fixture
@@ -227,11 +228,10 @@ async def consultor_b_client(
     consultor_b_user: User,
 ) -> AsyncGenerator[httpx.AsyncClient, None]:
     """httpx.AsyncClient authenticated as a second consultor (consultor_b)."""
-    app.dependency_overrides[get_current_user] = _make_user_override(consultor_b_user)
-    transport = httpx.ASGITransport(app=app)
+    role_app = make_role_app(consultor_b_user)
+    transport = httpx.ASGITransport(app=role_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
-    app.dependency_overrides.pop(get_current_user, None)
 
 
 # ---------------------------------------------------------------------------

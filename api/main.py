@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from api.errors import register_domain_error_handlers
 from api.routes import admin
-from api.routes import clients, contacts, leads, milestones, services
+from api.routes import activity, clients, contacts, leads, milestones, services
 from shared.config import get_settings
 from shared.logging_config import configure_logging
 from shared.fastapi_errors import register_error_handlers
@@ -22,36 +22,55 @@ from shared.fastapi_errors import register_error_handlers
 configure_logging()
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
 
-app = FastAPI(
-    title="Zanovix CRM API",
-    description="Lead capture and management API",
-    version="0.1.0",
-)
+def build_app() -> FastAPI:
+    """
+    Construct and return a fully configured FastAPI application instance.
 
-# CORS
-origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-)
+    Extracted from module-level so that integration tests can create isolated
+    instances (one per role-scoped fixture) without sharing mutable state such
+    as ``dependency_overrides``.  The uvicorn-loaded singleton ``app`` below
+    calls this function exactly once at import time — no behaviour change for
+    production.
+    """
+    settings = get_settings()
 
-# Error handlers (generic HTTP + validation)
-register_error_handlers(app)
-# Domain error handlers (Lead aggregate)
-register_domain_error_handlers(app)
+    _app = FastAPI(
+        title="Zanovix CRM API",
+        description="Lead capture and management API",
+        version="0.1.0",
+    )
 
-# Routers
-app.include_router(admin.router)
-app.include_router(leads.router, prefix="/api")
-app.include_router(clients.router, prefix="/api")
-app.include_router(contacts.router, prefix="/api")
-app.include_router(services.router, prefix="/api")
-app.include_router(milestones.router, prefix="/api")
+    # CORS
+    origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+    _app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    )
+
+    # Error handlers (generic HTTP + validation)
+    register_error_handlers(_app)
+    # Domain error handlers (Lead aggregate)
+    register_domain_error_handlers(_app)
+
+    # Routers
+    _app.include_router(admin.router)
+    _app.include_router(activity.router, prefix="/api")
+    _app.include_router(leads.router, prefix="/api")
+    _app.include_router(clients.router, prefix="/api")
+    _app.include_router(contacts.router, prefix="/api")
+    _app.include_router(services.router, prefix="/api")
+    _app.include_router(milestones.router, prefix="/api")
+
+    return _app
+
+
+# Singleton consumed by uvicorn and by any import that does ``from api.main import app``.
+# Tests MUST NOT mutate this instance's dependency_overrides — use make_role_app() instead.
+app = build_app()
 
 
 @app.get("/health")
@@ -63,7 +82,7 @@ async def health_check() -> JSONResponse:
 
     health_status = {
         "status": "healthy",
-        "service": settings.PROJECT_NAME,
+        "service": get_settings().PROJECT_NAME,
         "redis": "unknown",
         "postgres": "unknown",
     }

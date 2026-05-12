@@ -1,11 +1,12 @@
 """
-ActivityLog service — internal helper for appending audit/activity rows.
+ActivityLog service — internal helper for appending audit/activity rows,
+and listing activity entries for the admin activity feed.
 
 Design principles:
-- This module is NOT exposed via any HTTP route. It is a shared helper called
-  exclusively by other service modules within the same async session.
+- append_activity() is the SINGLE ingress point for ActivityLog rows (ADR-3).
+  It is called exclusively by other service modules within the same async session.
+- list_activity() is called by the activity route handler (GET /api/activity).
 - services flush; routes commit.
-- activity_log_service.write() is the SINGLE ingress point for ActivityLog rows (ADR-3).
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from __future__ import annotations
 import logging
 import uuid
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.domain.activity_kinds import ACTIVITY_KINDS
@@ -74,3 +76,54 @@ async def append_activity(
         },
     )
     return entry
+
+
+async def list_activity(
+    session: AsyncSession,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+    client_id: uuid.UUID | None = None,
+) -> tuple[list[ActivityLog], int]:
+    """
+    Return a paginated list of ActivityLog rows, ordered by created_at DESC.
+
+    Optionally filtered to a single client when `client_id` is provided.
+
+    Args:
+        session:   Active AsyncSession (read-only query, no flush/commit).
+        limit:     Maximum number of entries to return (max 200, default 50).
+        offset:    Number of entries to skip (for pagination).
+        client_id: Optional UUID — when set, only entries for this client are returned.
+
+    Returns:
+        Tuple of (items, total) where `total` is the unfiltered row count
+        matching the same predicate (used for pagination metadata).
+    """
+    base_filter = []
+    if client_id is not None:
+        base_filter.append(ActivityLog.client_id == client_id)
+
+    count_stmt = select(func.count(ActivityLog.id))
+    if base_filter:
+        count_stmt = count_stmt.where(*base_filter)
+    total: int = (await session.execute(count_stmt)).scalar_one()
+
+    list_stmt = (
+        select(ActivityLog)
+        .order_by(ActivityLog.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    if base_filter:
+        list_stmt = list_stmt.where(*base_filter)
+
+    items: list[ActivityLog] = list(
+        (await session.execute(list_stmt)).scalars().all()
+    )
+
+    logger.debug(
+        "list_activity_queried",
+        extra={"limit": limit, "offset": offset, "total": total},
+    )
+    return items, total
