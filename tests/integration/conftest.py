@@ -150,6 +150,80 @@ async def consultor_b_user(test_session_factory) -> User:
     )
 
 
+@pytest.fixture(scope="session")
+async def client_user(test_session_factory) -> User:
+    """
+    A real client_user row persisted in the DB (session-scoped).
+
+    client_id is set to None at creation time; ``test_client_for_portal``
+    updates it to a valid Client.id before each test so FK constraints are
+    always satisfied.
+    """
+    from sqlalchemy import select as sa_select
+
+    email = "client.portal.test@zanovix.test"
+    async with test_session_factory() as session:
+        stmt = sa_select(User).where(User.email == email)
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing is not None:
+            return existing
+
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            password_hash="$2b$12$test_placeholder_not_a_real_hash",
+            role="client_user",
+            display_name="Test Client Portal User",
+            is_active=True,
+            client_id=None,
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
+
+
+@pytest.fixture
+async def test_client_for_portal(
+    test_session_factory,
+    client_user: User,
+    cleanup_crm_rows,  # explicit dep ensures this runs AFTER pre-test cleanup
+) -> "Client":
+    """
+    A real Client row seeded fresh for each test (function-scoped).
+
+    Because ``cleanup_crm_rows`` deletes ALL Client rows between tests, this
+    fixture re-creates the portal client AFTER cleanup has run (it depends on
+    ``cleanup_crm_rows`` indirectly via test ordering).  It also updates
+    ``client_user.client_id`` to point at the new row so the FK is always
+    valid for the lifetime of the test.
+    """
+    from sqlalchemy import select as sa_select, update as sa_update
+
+    async with test_session_factory() as session:
+        portal_client = Client(
+            id=uuid.uuid4(),
+            name="Portal Test Client",
+            stage="active",
+        )
+        session.add(portal_client)
+        await session.flush()
+
+        # Keep client_user.client_id in sync so ticket/message FKs are valid.
+        await session.execute(
+            sa_update(User)
+            .where(User.id == client_user.id)
+            .values(client_id=portal_client.id)
+        )
+        await session.commit()
+        await session.refresh(portal_client)
+
+        # Update the in-memory User object so callers see the new client_id.
+        client_user.client_id = portal_client.id
+
+        return portal_client
+
+
 # ---------------------------------------------------------------------------
 # Autouse cleanup — delete all CRM rows between tests (NOT users)
 # ---------------------------------------------------------------------------

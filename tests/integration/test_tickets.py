@@ -24,8 +24,9 @@ from __future__ import annotations
 import uuid
 
 import httpx
-import pytest
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from database.models import Client, Ticket
 from database.models.user import User
 
 
@@ -40,57 +41,39 @@ async def _create_client(client: httpx.AsyncClient, name: str = "Ticket Corp") -
     return resp.json()["id"]
 
 
-async def _create_ticket(
-    client: httpx.AsyncClient,
-    client_id: str,
-    title: str = "Test Ticket",
-    priority: str = "medium",
-) -> dict:
-    """Create a ticket via the /api/me/* portal endpoint using a client_user-scoped app.
-
-    Since we cannot easily create a client_user in conftest without adding a new fixture,
-    we use the admin app with a direct DB insertion via the admin client creation route.
-
-    For simplicity, we create the ticket via the me.py router by building a minimal
-    client_user app pointed at the correct client.
-    """
-    # We rely on admin creating tickets via the service layer directly in tests.
-    # However, since no admin endpoint for POST /api/clients/{id}/tickets exists (only /me/),
-    # we use the test helper below to use the me.py POST endpoint via a portal-user fixture.
-    # The approach: POST via /api/me/tickets with a scoped app that has client_id set.
-    raise NotImplementedError("Use _create_ticket_via_portal instead")
-
-
-async def _create_ticket_via_portal(
-    admin_client: httpx.AsyncClient,
-    client_id: str,
+async def _seed_ticket(
+    session_factory: async_sessionmaker,
+    client_user: User,
+    portal_client: Client,
     title: str = "Test Ticket",
     priority: str = "medium",
 ) -> dict:
     """
-    Create a ticket via the me.py portal endpoint by building a temporary
-    client_user-scoped app with the given client_id.
-    """
-    from tests.integration._app_factory import make_role_app
+    Insert a Ticket row directly via ORM using a real persisted client_user.
 
-    portal_user = User(
-        id=uuid.uuid4(),
-        email=f"portal.{uuid.uuid4().hex[:6]}@zanovix.test",
-        password_hash="$2b$12$placeholder",
-        role="client_user",
-        display_name="Portal Test User",
-        is_active=True,
-        client_id=uuid.UUID(client_id),
-    )
-    portal_app = make_role_app(portal_user)
-    transport = httpx.ASGITransport(app=portal_app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as portal_client:
-        resp = await portal_client.post(
-            "/api/me/tickets",
-            json={"title": title, "priority": priority},
+    Avoids FK violations that occurred when the old helper used an ephemeral
+    (non-persisted) portal_user for ``created_by_user_id``.
+    """
+    async with session_factory() as session:
+        ticket = Ticket(
+            id=uuid.uuid4(),
+            client_id=portal_client.id,
+            title=title,
+            priority=priority,
+            status="pending",
+            created_by_user_id=client_user.id,
         )
-        assert resp.status_code == 201, resp.text
-        return resp.json()
+        session.add(ticket)
+        await session.commit()
+        await session.refresh(ticket)
+        return {
+            "id": str(ticket.id),
+            "client_id": str(ticket.client_id),
+            "title": ticket.title,
+            "priority": ticket.priority,
+            "status": ticket.status,
+            "created_by_user_id": str(ticket.created_by_user_id),
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -99,11 +82,17 @@ async def _create_ticket_via_portal(
 
 
 class TestListClientTickets:
-    async def test_admin_can_list_tickets(self, admin_client: httpx.AsyncClient):
+    async def test_admin_can_list_tickets(
+        self,
+        admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
+    ):
         """Admin lists tickets for a client — 200 + TicketListResponse shape."""
-        client_id = await _create_client(admin_client, "Admin List Tickets Corp")
-        await _create_ticket_via_portal(admin_client, client_id, "First ticket")
-        await _create_ticket_via_portal(admin_client, client_id, "Second ticket")
+        client_id = str(test_client_for_portal.id)
+        await _seed_ticket(test_session_factory, client_user, test_client_for_portal, "First ticket")
+        await _seed_ticket(test_session_factory, client_user, test_client_for_portal, "Second ticket")
 
         resp = await admin_client.get(f"/api/clients/{client_id}/tickets")
 
@@ -116,10 +105,13 @@ class TestListClientTickets:
         self,
         admin_client: httpx.AsyncClient,
         consultor_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Consultor can list tickets for any client (200)."""
-        client_id = await _create_client(admin_client, "Consultor List Tickets Corp")
-        await _create_ticket_via_portal(admin_client, client_id)
+        client_id = str(test_client_for_portal.id)
+        await _seed_ticket(test_session_factory, client_user, test_client_for_portal)
 
         resp = await consultor_client.get(f"/api/clients/{client_id}/tickets")
 
@@ -127,21 +119,31 @@ class TestListClientTickets:
 
     async def test_comercial_can_list_tickets(
         self,
-        admin_client: httpx.AsyncClient,
         comercial_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Comercial can list tickets (read access)."""
-        client_id = await _create_client(admin_client, "Comercial List Tickets Corp")
-        await _create_ticket_via_portal(admin_client, client_id)
+        client_id = str(test_client_for_portal.id)
+        await _seed_ticket(test_session_factory, client_user, test_client_for_portal)
 
         resp = await comercial_client.get(f"/api/clients/{client_id}/tickets")
 
         assert resp.status_code == 200, resp.text
 
-    async def test_status_filter_works(self, admin_client: httpx.AsyncClient):
+    async def test_status_filter_works(
+        self,
+        admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
+    ):
         """GET tickets with status filter returns only matching tickets."""
-        client_id = await _create_client(admin_client, "Status Filter Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Pending ticket")
+        client_id = str(test_client_for_portal.id)
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Pending ticket"
+        )
         ticket_id = ticket["id"]
 
         # Close the ticket via internal PATCH
@@ -151,7 +153,9 @@ class TestListClientTickets:
         )
 
         # Create another ticket that stays pending
-        await _create_ticket_via_portal(admin_client, client_id, "Still pending")
+        await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Still pending"
+        )
 
         resp = await admin_client.get(
             f"/api/clients/{client_id}/tickets",
@@ -163,9 +167,13 @@ class TestListClientTickets:
         assert body["total"] == 1
         assert body["items"][0]["status"] == "closed"
 
-    async def test_limit_exceeds_max_returns_400(self, admin_client: httpx.AsyncClient):
+    async def test_limit_exceeds_max_returns_400(
+        self,
+        admin_client: httpx.AsyncClient,
+        test_client_for_portal: Client,
+    ):
         """limit > 200 → 400 with error envelope."""
-        client_id = await _create_client(admin_client, "Limit Tickets Corp")
+        client_id = str(test_client_for_portal.id)
 
         resp = await admin_client.get(
             f"/api/clients/{client_id}/tickets",
@@ -195,10 +203,18 @@ class TestListClientTickets:
 
 
 class TestGetTicket:
-    async def test_admin_can_get_ticket(self, admin_client: httpx.AsyncClient):
+    async def test_admin_can_get_ticket(
+        self,
+        admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
+    ):
         """Admin can fetch any ticket by ID (200 + TicketOut shape)."""
-        client_id = await _create_client(admin_client, "Get Ticket Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Get me")
+        client_id = str(test_client_for_portal.id)
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Get me"
+        )
         ticket_id = ticket["id"]
 
         resp = await admin_client.get(f"/api/tickets/{ticket_id}")
@@ -211,12 +227,13 @@ class TestGetTicket:
 
     async def test_consultor_can_get_ticket(
         self,
-        admin_client: httpx.AsyncClient,
         consultor_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Consultor can fetch any ticket (200)."""
-        client_id = await _create_client(admin_client, "Consultor Get Ticket Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id)
+        ticket = await _seed_ticket(test_session_factory, client_user, test_client_for_portal)
         ticket_id = ticket["id"]
 
         resp = await consultor_client.get(f"/api/tickets/{ticket_id}")
@@ -225,12 +242,13 @@ class TestGetTicket:
 
     async def test_comercial_can_get_ticket(
         self,
-        admin_client: httpx.AsyncClient,
         comercial_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Comercial can fetch any ticket (200)."""
-        client_id = await _create_client(admin_client, "Comercial Get Ticket Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id)
+        ticket = await _seed_ticket(test_session_factory, client_user, test_client_for_portal)
         ticket_id = ticket["id"]
 
         resp = await comercial_client.get(f"/api/tickets/{ticket_id}")
@@ -253,11 +271,16 @@ class TestGetTicket:
 
 class TestUpdateTicketInternal:
     async def test_admin_can_update_title_and_priority(
-        self, admin_client: httpx.AsyncClient
+        self,
+        admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Admin PATCH → 200 + updated fields reflected in response."""
-        client_id = await _create_client(admin_client, "Admin Update Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Original Title")
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Original Title"
+        )
         ticket_id = ticket["id"]
 
         resp = await admin_client.patch(
@@ -270,10 +293,17 @@ class TestUpdateTicketInternal:
         assert body["title"] == "Updated Title"
         assert body["priority"] == "high"
 
-    async def test_admin_can_change_status(self, admin_client: httpx.AsyncClient):
+    async def test_admin_can_change_status(
+        self,
+        admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
+    ):
         """Admin can transition status to in_progress and closed."""
-        client_id = await _create_client(admin_client, "Status Change Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Status Ticket")
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Status Ticket"
+        )
         ticket_id = ticket["id"]
 
         # pending → in_progress
@@ -293,10 +323,15 @@ class TestUpdateTicketInternal:
     async def test_closed_status_logs_ticket_closed_activity(
         self,
         admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Transitioning to closed logs ticket_closed activity kind."""
-        client_id = await _create_client(admin_client, "Close Activity Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Close Me")
+        client_id = str(test_client_for_portal.id)
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Close Me"
+        )
         ticket_id = ticket["id"]
 
         await admin_client.patch(f"/api/tickets/{ticket_id}", json={"status": "closed"})
@@ -309,10 +344,15 @@ class TestUpdateTicketInternal:
     async def test_non_close_update_logs_ticket_updated_activity(
         self,
         admin_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Non-close updates log ticket_updated activity kind."""
-        client_id = await _create_client(admin_client, "Update Activity Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Update Me")
+        client_id = str(test_client_for_portal.id)
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Update Me"
+        )
         ticket_id = ticket["id"]
 
         await admin_client.patch(f"/api/tickets/{ticket_id}", json={"priority": "high"})
@@ -324,12 +364,15 @@ class TestUpdateTicketInternal:
 
     async def test_consultor_can_change_status(
         self,
-        admin_client: httpx.AsyncClient,
         consultor_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Consultor can update ticket status (200)."""
-        client_id = await _create_client(admin_client, "Consultor Status Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Consultor Ticket")
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Consultor Ticket"
+        )
         ticket_id = ticket["id"]
 
         resp = await consultor_client.patch(
@@ -341,12 +384,15 @@ class TestUpdateTicketInternal:
 
     async def test_comercial_cannot_change_status_403(
         self,
-        admin_client: httpx.AsyncClient,
         comercial_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Comercial attempting to change ticket status → 403."""
-        client_id = await _create_client(admin_client, "Comercial Block Status Corp")
-        ticket = await _create_ticket_via_portal(admin_client, client_id, "Comercial Ticket")
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Comercial Ticket"
+        )
         ticket_id = ticket["id"]
 
         resp = await comercial_client.patch(
@@ -358,13 +404,14 @@ class TestUpdateTicketInternal:
 
     async def test_comercial_can_update_non_status_fields(
         self,
-        admin_client: httpx.AsyncClient,
         comercial_client: httpx.AsyncClient,
+        test_session_factory,
+        client_user: User,
+        test_client_for_portal: Client,
     ):
         """Comercial can patch title, priority, and body (200)."""
-        client_id = await _create_client(admin_client, "Comercial Edit Corp")
-        ticket = await _create_ticket_via_portal(
-            admin_client, client_id, "Comercial Editable"
+        ticket = await _seed_ticket(
+            test_session_factory, client_user, test_client_for_portal, "Comercial Editable"
         )
         ticket_id = ticket["id"]
 
