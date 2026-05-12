@@ -303,11 +303,13 @@ class ClientService:
         if lead is None:
             raise LeadNotFoundError(lead_id)
 
-        if lead.status != "qualified":
-            raise LeadNotQualifiedError(lead_id, lead.status)
-
+        # Check already-converted FIRST — a converted lead has status "converted"
+        # so checking status before this would incorrectly raise LeadNotQualifiedError.
         if lead.converted_client_id is not None:
             raise LeadAlreadyConvertedError(lead_id, lead.converted_client_id)
+
+        if lead.status != "qualified":
+            raise LeadNotQualifiedError(lead_id, lead.status)
 
         # Resolve client fields — body fields take precedence; fall back to lead data
         client_name = body.name or lead.company or lead.name

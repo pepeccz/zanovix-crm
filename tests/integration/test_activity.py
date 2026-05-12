@@ -77,15 +77,15 @@ class TestGetActivity:
     async def test_limit_exceeds_max_returns_400(
         self, admin_client: httpx.AsyncClient
     ):
-        """limit > 200 returns 400 with error shape, not 422."""
+        """limit > 200 returns 400 with unified error envelope, not 422."""
         resp = await admin_client.get("/api/activity?limit=201")
 
         assert resp.status_code == 400, resp.text
         body = resp.json()
-        # FastAPI wraps detail in {"detail": ...} for HTTPException
-        detail = body.get("detail", body)
-        assert detail["error"] == "limit_exceeds_max"
-        assert detail["max"] == 200
+        # Unified error handler (shared/fastapi_errors.py) converts HTTPException to
+        # APIErrorResponse: {success, error_category, error_code, message, ...}
+        assert body.get("success") is False
+        assert body.get("error_code") == "HTTP_400"
 
     async def test_limit_at_max_is_allowed(self, admin_client: httpx.AsyncClient):
         """limit = 200 is the boundary — must return 200 OK."""

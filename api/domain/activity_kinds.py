@@ -8,6 +8,7 @@ from __future__ import annotations
 
 ACTIVITY_KINDS: frozenset[str] = frozenset(
     {
+        # Slice 1-4 kinds
         "stage_change",
         "contact_added",
         "contact_updated",
@@ -16,5 +17,10 @@ ACTIVITY_KINDS: frozenset[str] = frozenset(
         "milestone_completed",
         "lead_converted",
         "note",
+        # Slice 5 — client portal additions
+        "ticket_opened",
+        "ticket_updated",
+        "ticket_closed",
+        "message_sent",
     }
 )

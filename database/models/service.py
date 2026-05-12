@@ -16,7 +16,7 @@ from sqlalchemy import (
     String,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.models.base import Base
@@ -81,6 +81,8 @@ class Service(Base):
     )
     monthly_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     score_int: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Slice 5: assessment diagnostic data (nullable; meaningful only for type='assessment')
+    diagnostic_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
     owner: Mapped[User | None] = relationship("User", lazy="selectin")

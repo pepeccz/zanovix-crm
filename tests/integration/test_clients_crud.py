@@ -161,14 +161,15 @@ class TestListClients:
         assert all("UniqueXYZ" in c["name"] for c in body["items"])
 
     async def test_limit_exceeds_max_returns_400(self, admin_client: httpx.AsyncClient):
-        """GET /api/clients?limit=300 → 400 with error body."""
+        """GET /api/clients?limit=300 → 400 with unified error envelope."""
         resp = await admin_client.get("/api/clients?limit=300")
 
         assert resp.status_code == 400, resp.text
         body = resp.json()
-        # FastAPI wraps HTTPException detail under 'detail' key
-        assert body.get("detail", {}).get("error") == "limit_exceeds_max"
-        assert body.get("detail", {}).get("max") == 200
+        # Unified error handler (shared/fastapi_errors.py) converts HTTPException to
+        # APIErrorResponse: {success, error_category, error_code, message, ...}
+        assert body.get("success") is False
+        assert body.get("error_code") == "HTTP_400"
 
     async def test_pagination_offset(self, admin_client: httpx.AsyncClient):
         """Offset pagination returns correct slice."""
