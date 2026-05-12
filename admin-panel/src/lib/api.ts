@@ -3,13 +3,88 @@
  * Handles all HTTP requests to FastAPI backend
  */
 
-import type { CurrentUser, Lead, LeadListResponse, LeadStatus, UserListResponse } from "./types";
+import type {
+  ActivityFilters,
+  ActivityLogListResponse,
+  ClientDetailResponse,
+  ClientFilters,
+  ClientListResponse,
+  ClientRead,
+  ClientStage,
+  ClientUpdate,
+  ContactCreate,
+  ContactRead,
+  ContactUpdate,
+  ConvertLeadBody,
+  CurrentUser,
+  Lead,
+  LeadListResponse,
+  LeadStatus,
+  MilestoneCreate,
+  MilestoneRead,
+  MilestoneUpdate,
+  ServiceFilters,
+  ServiceListResponse,
+  ServiceRead,
+  ServiceState,
+  ServiceType,
+  ServiceUpdate,
+  UserListResponse,
+} from "./types";
 
 // Usa URL relativa - Next.js rewrites hace proxy al backend
 const API_BASE_URL = "";
 
 /** In-flight GET request deduplication map (module-scoped, lightweight) */
 const inflight = new Map<string, Promise<unknown>>();
+
+/**
+ * Typed API error — thrown by ApiClient for all non-2xx responses.
+ *
+ * Extends Error so existing code that reads `.message` keeps working.
+ * Callers that need to branch on error kind should check `.status` and `.body`.
+ *
+ * For 409 invalid_transition responses the backend returns:
+ *   { error: "invalid_transition", from, to, allowed: string[] }
+ * Callers can read `(err.body as Record<string, unknown>).allowed` to get the list.
+ */
+export class ApiError extends Error {
+  /** HTTP status code (e.g. 400, 403, 404, 409, 422, 500). */
+  status: number;
+  /**
+   * The `error` field from the response JSON envelope, when present.
+   * Examples: "invalid_transition", "already_converted", "client_is_lost".
+   */
+  error_code: string;
+  /**
+   * Allowed transition targets when the server returns a 409 with
+   * an `allowed` array (stage or state machine violation).
+   */
+  allowed: string[] | undefined;
+  /** Raw parsed response body — useful for callers that need extra context. */
+  original: unknown;
+
+  constructor({
+    message,
+    status,
+    error_code,
+    allowed,
+    original,
+  }: {
+    message: string;
+    status: number;
+    error_code: string;
+    allowed?: string[];
+    original: unknown;
+  }) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.error_code = error_code;
+    this.allowed = allowed;
+    this.original = original;
+  }
+}
 
 class ApiClient {
   private baseUrl: string;
@@ -64,18 +139,31 @@ class ApiClient {
       const errorData = await response.json().catch(() => ({
         error: `HTTP ${response.status}: ${response.statusText}`,
       }));
-      // Handle FastAPI 422 validation error format: { "detail": [...] }
+
+      // Derive human-readable message — keeps backward compat for callers using .message
+      let message: string;
+      // FastAPI 422 validation error: { "detail": [{msg: "...", ...}, ...] }
       if (errorData.detail) {
         if (Array.isArray(errorData.detail)) {
-          const msgs = errorData.detail
-            .map((d: Record<string, string>) => d.msg)
-            .filter(Boolean)
-            .join(", ");
-          throw new Error(msgs || "Error de validación");
+          message =
+            errorData.detail
+              .map((d: Record<string, string>) => d.msg)
+              .filter(Boolean)
+              .join(", ") || "Error de validación";
+        } else {
+          message = String(errorData.detail);
         }
-        throw new Error(String(errorData.detail));
+      } else {
+        message = String(errorData.error || errorData.message || "Unknown error");
       }
-      throw new Error(errorData.error || "Unknown error");
+
+      throw new ApiError({
+        message,
+        status: response.status,
+        error_code: String(errorData.error || errorData.error_code || `HTTP_${response.status}`),
+        allowed: Array.isArray(errorData.allowed) ? (errorData.allowed as string[]) : undefined,
+        original: errorData,
+      });
     }
 
     if (
@@ -188,6 +276,190 @@ class ApiClient {
   async listUsers(): Promise<UserListResponse> {
     // TODO Phase 5: implement GET /api/users when backend adds it
     return Promise.resolve({ items: [], total: 0 });
+  }
+
+  // ===========================================
+  // Clients endpoints
+  // ===========================================
+
+  async getClients(filters: ClientFilters = {}): Promise<ClientListResponse> {
+    const params = new URLSearchParams();
+    if (filters.stage) params.set("stage", filters.stage);
+    if (filters.owner_id) params.set("owner_id", filters.owner_id);
+    if (filters.sector) params.set("sector", filters.sector);
+    if (filters.q) params.set("q", filters.q);
+    if (filters.limit !== undefined) params.set("limit", String(filters.limit));
+    if (filters.offset !== undefined) params.set("offset", String(filters.offset));
+    const qs = params.toString();
+    return this.request(`/api/clients${qs ? `?${qs}` : ""}`);
+  }
+
+  async getClient(id: string): Promise<ClientDetailResponse> {
+    return this.request(`/api/clients/${id}`);
+  }
+
+  async createClient(body: {
+    name: string;
+    sector?: string;
+    size?: string;
+    region?: string;
+    owner_id?: string;
+    mrr_cents?: number;
+    stage?: ClientStage;
+  }): Promise<ClientRead> {
+    return this.request("/api/clients", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patchClient(id: string, body: ClientUpdate): Promise<ClientRead> {
+    return this.request(`/api/clients/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patchClientStage(id: string, new_stage: ClientStage): Promise<ClientRead> {
+    return this.request(`/api/clients/${id}/stage`, {
+      method: "PATCH",
+      body: JSON.stringify({ stage: new_stage }),
+    });
+  }
+
+  // ===========================================
+  // Contacts endpoints
+  // ===========================================
+
+  async getClientContacts(clientId: string): Promise<ContactRead[]> {
+    return this.request(`/api/clients/${clientId}/contacts`);
+  }
+
+  async createContact(clientId: string, body: ContactCreate): Promise<ContactRead> {
+    return this.request(`/api/clients/${clientId}/contacts`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patchContact(
+    clientId: string,
+    contactId: string,
+    body: ContactUpdate
+  ): Promise<ContactRead> {
+    return this.request(`/api/clients/${clientId}/contacts/${contactId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async deleteContact(clientId: string, contactId: string): Promise<void> {
+    return this.request(`/api/clients/${clientId}/contacts/${contactId}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ===========================================
+  // Services endpoints
+  // ===========================================
+
+  async getServices(filters: ServiceFilters = {}): Promise<ServiceListResponse> {
+    const params = new URLSearchParams();
+    if (filters.client_id) params.set("client_id", filters.client_id);
+    if (filters.owner_id) params.set("owner_id", filters.owner_id);
+    if (filters.state) params.set("state", filters.state);
+    if (filters.type) params.set("type", filters.type);
+    if (filters.limit !== undefined) params.set("limit", String(filters.limit));
+    if (filters.offset !== undefined) params.set("offset", String(filters.offset));
+    const qs = params.toString();
+    return this.request(`/api/services${qs ? `?${qs}` : ""}`);
+  }
+
+  async getService(id: string): Promise<ServiceRead> {
+    return this.request(`/api/services/${id}`);
+  }
+
+  async createService(clientId: string, body: {
+    type: ServiceType;
+    title: string;
+    owner_id?: string;
+    setup_price_cents?: number;
+    monthly_cents?: number;
+  }): Promise<ServiceRead> {
+    return this.request(`/api/clients/${clientId}/services`, {
+      method: "POST",
+      body: JSON.stringify({ client_id: clientId, ...body }),
+    });
+  }
+
+  async patchService(id: string, body: ServiceUpdate): Promise<ServiceRead> {
+    return this.request(`/api/services/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patchServiceState(id: string, new_state: ServiceState): Promise<ServiceRead> {
+    return this.request(`/api/services/${id}/state`, {
+      method: "PATCH",
+      body: JSON.stringify({ state: new_state }),
+    });
+  }
+
+  // ===========================================
+  // Milestones endpoints
+  // ===========================================
+
+  async getMilestones(serviceId: string): Promise<MilestoneRead[]> {
+    return this.request(`/api/services/${serviceId}/milestones`);
+  }
+
+  async createMilestone(serviceId: string, body: MilestoneCreate): Promise<MilestoneRead> {
+    return this.request(`/api/services/${serviceId}/milestones`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patchMilestone(
+    serviceId: string,
+    n: number,
+    body: MilestoneUpdate
+  ): Promise<MilestoneRead> {
+    return this.request(`/api/services/${serviceId}/milestones/${n}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async deleteMilestone(serviceId: string, n: number): Promise<void> {
+    return this.request(`/api/services/${serviceId}/milestones/${n}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ===========================================
+  // Lead conversion
+  // ===========================================
+
+  async convertLead(leadId: string, body: ConvertLeadBody = {}): Promise<ClientRead> {
+    return this.request(`/api/leads/${leadId}/convert`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ===========================================
+  // Activity endpoint
+  // ===========================================
+
+  async getActivity(params: ActivityFilters = {}): Promise<ActivityLogListResponse> {
+    const qs = new URLSearchParams();
+    if (params.limit !== undefined) qs.set("limit", String(params.limit));
+    if (params.offset !== undefined) qs.set("offset", String(params.offset));
+    if (params.client_id) qs.set("client_id", params.client_id);
+    const qStr = qs.toString();
+    return this.request(`/api/activity${qStr ? `?${qStr}` : ""}`);
   }
 }
 
