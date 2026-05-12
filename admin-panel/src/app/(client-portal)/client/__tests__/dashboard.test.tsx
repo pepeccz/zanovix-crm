@@ -52,56 +52,50 @@ jest.mock("@/contexts/auth-context", () => ({
   }),
 }));
 
-const mockClient = {
-  id: "c1",
-  name: "Naviera Med",
-  stage: "active" as const,
-  created_at: "2024-01-01",
-  updated_at: "2024-01-01",
-  sector: null,
-  size: null,
-  region: null,
-  owner_id: null,
-  entered_at: "2024-01-01",
-  mrr_cents: null,
-  lifetime_value_cents: null,
-};
-
-const mockServices = {
-  items: [
-    {
-      id: "s1",
-      title: "AI Readiness Assessment",
-      type: "assessment" as const,
-      state: "running" as const,
-      progress_pct: 75,
-      client_id: "c1",
-      owner_id: null,
-      created_at: "2024-01-01",
-      updated_at: "2024-01-01",
-      started_at: null,
-      ended_at: null,
-      setup_price_cents: null,
-      monthly_cents: null,
-      score_int: null,
-      milestones: [],
-      diagnostic_json: null,
-    },
-  ],
-  total: 1,
-  limit: 50,
-  offset: 0,
-};
-
-const mockActivity = { items: [], total: 0, limit: 20, offset: 0 };
-
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {
     me: {
-      getMyClient: jest.fn().mockResolvedValue(mockClient),
-      getMyServices: jest.fn().mockResolvedValue(mockServices),
-      getMyActivity: jest.fn().mockResolvedValue(mockActivity),
+      getMyClient: jest.fn().mockResolvedValue({
+        id: "c1",
+        name: "Naviera Med",
+        stage: "active",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+        sector: null,
+        size: null,
+        region: null,
+        owner_id: null,
+        entered_at: "2024-01-01",
+        mrr_cents: null,
+        lifetime_value_cents: null,
+      }),
+      getMyServices: jest.fn().mockResolvedValue({
+        items: [
+          {
+            id: "s1",
+            title: "AI Readiness Assessment",
+            type: "assessment",
+            state: "running",
+            progress_pct: 75,
+            client_id: "c1",
+            owner_id: null,
+            created_at: "2024-01-01",
+            updated_at: "2024-01-01",
+            started_at: null,
+            ended_at: null,
+            setup_price_cents: null,
+            monthly_cents: null,
+            score_int: null,
+            milestones: [],
+            diagnostic_json: null,
+          },
+        ],
+        total: 1,
+        limit: 50,
+        offset: 0,
+      }),
+      getMyActivity: jest.fn().mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 }),
     },
   },
 }));

@@ -39,39 +39,37 @@ jest.mock("sileo", () => ({
   sileo: { error: jest.fn(), success: jest.fn() },
 }));
 
-const mockTickets = {
-  items: [
-    {
-      id: "t1",
-      client_id: "c1",
-      service_id: null,
-      title: "No puedo acceder al dashboard",
-      priority: "high" as const,
-      status: "pending" as const,
-      created_at: "2024-05-01T10:00:00Z",
-      updated_at: "2024-05-01T10:00:00Z",
-    },
-    {
-      id: "t2",
-      client_id: "c1",
-      service_id: null,
-      title: "Pregunta sobre factura INV-041",
-      priority: "medium" as const,
-      status: "in_progress" as const,
-      created_at: "2024-04-20T09:00:00Z",
-      updated_at: "2024-04-21T11:00:00Z",
-    },
-  ],
-  total: 2,
-  limit: 50,
-  offset: 0,
-};
-
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {
     me: {
-      getMyTickets: jest.fn().mockResolvedValue(mockTickets),
+      getMyTickets: jest.fn().mockResolvedValue({
+        items: [
+          {
+            id: "t1",
+            client_id: "c1",
+            service_id: null,
+            title: "No puedo acceder al dashboard",
+            priority: "high",
+            status: "pending",
+            created_at: "2024-05-01T10:00:00Z",
+            updated_at: "2024-05-01T10:00:00Z",
+          },
+          {
+            id: "t2",
+            client_id: "c1",
+            service_id: null,
+            title: "Pregunta sobre factura INV-041",
+            priority: "medium",
+            status: "in_progress",
+            created_at: "2024-04-20T09:00:00Z",
+            updated_at: "2024-04-21T11:00:00Z",
+          },
+        ],
+        total: 2,
+        limit: 50,
+        offset: 0,
+      }),
       postMyTicket: jest.fn(),
     },
   },

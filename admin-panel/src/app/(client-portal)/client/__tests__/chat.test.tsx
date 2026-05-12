@@ -42,25 +42,23 @@ jest.mock("@/contexts/auth-context", () => ({
   }),
 }));
 
-const mockMessages = {
-  items: [
-    {
-      id: "m1",
-      client_id: "c1",
-      sender_user_id: "u-zanovix",
-      sender_contact_id: null,
-      body: "Hola, ¿cómo podemos ayudarte?",
-      created_at: new Date().toISOString(),
-    },
-  ],
-  total: 1,
-};
-
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {
     me: {
-      getMyMessages: jest.fn().mockResolvedValue(mockMessages),
+      getMyMessages: jest.fn().mockResolvedValue({
+        items: [
+          {
+            id: "m1",
+            client_id: "c1",
+            sender_user_id: "u-zanovix",
+            sender_contact_id: null,
+            body: "Hola, ¿cómo podemos ayudarte?",
+            created_at: new Date().toISOString(),
+          },
+        ],
+        total: 1,
+      }),
       postMyMessage: jest.fn(),
     },
   },

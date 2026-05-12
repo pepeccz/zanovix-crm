@@ -40,52 +40,81 @@ jest.mock("sileo", () => ({
   sileo: { error: jest.fn(), success: jest.fn() },
 }));
 
-const mockDiagnostic = {
-  dimensions: {
-    data: 80,
-    processes: 70,
-    team: 65,
-    infrastructure: 75,
-    compliance: 90,
-    leadership: 85,
-  },
-  plan: [
-    { title: "Manifiestos automáticos", status: "go" as const, body: "Alta prioridad" },
-    { title: "Previsión demanda", status: "wait" as const, body: "Esperar datos" },
-  ],
-  summary: "La empresa es sólida técnicamente pero necesita modernizar su infraestructura de datos.",
-};
-
-const mockServiceWithDiag = {
-  id: "s1",
-  title: "AI Readiness Assessment",
-  type: "assessment" as const,
-  state: "delivered" as const,
-  progress_pct: 100,
-  client_id: "c1",
-  owner_id: null,
-  created_at: "2024-01-01",
-  updated_at: "2024-01-01",
-  started_at: null,
-  ended_at: null,
-  setup_price_cents: null,
-  monthly_cents: null,
-  score_int: 95,
-  milestones: [],
-  diagnostic_json: mockDiagnostic,
-};
-
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {
     me: {
       getMyServices: jest.fn().mockResolvedValue({
-        items: [mockServiceWithDiag],
+        items: [
+          {
+            id: "s1",
+            title: "AI Readiness Assessment",
+            type: "assessment",
+            state: "delivered",
+            progress_pct: 100,
+            client_id: "c1",
+            owner_id: null,
+            created_at: "2024-01-01",
+            updated_at: "2024-01-01",
+            started_at: null,
+            ended_at: null,
+            setup_price_cents: null,
+            monthly_cents: null,
+            score_int: 95,
+            milestones: [],
+            diagnostic_json: {
+              dimensions: {
+                data: 80,
+                processes: 70,
+                team: 65,
+                infrastructure: 75,
+                compliance: 90,
+                leadership: 85,
+              },
+              plan: [
+                { title: "Manifiestos automáticos", status: "go", body: "Alta prioridad" },
+                { title: "Previsión demanda", status: "wait", body: "Esperar datos" },
+              ],
+              summary: "La empresa es sólida técnicamente pero necesita modernizar su infraestructura de datos.",
+            },
+          },
+        ],
         total: 1,
         limit: 50,
         offset: 0,
       }),
-      getMyService: jest.fn().mockResolvedValue(mockServiceWithDiag),
+      getMyService: jest.fn().mockResolvedValue({
+        id: "s1",
+        title: "AI Readiness Assessment",
+        type: "assessment",
+        state: "delivered",
+        progress_pct: 100,
+        client_id: "c1",
+        owner_id: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+        started_at: null,
+        ended_at: null,
+        setup_price_cents: null,
+        monthly_cents: null,
+        score_int: 95,
+        milestones: [],
+        diagnostic_json: {
+          dimensions: {
+            data: 80,
+            processes: 70,
+            team: 65,
+            infrastructure: 75,
+            compliance: 90,
+            leadership: 85,
+          },
+          plan: [
+            { title: "Manifiestos automáticos", status: "go", body: "Alta prioridad" },
+            { title: "Previsión demanda", status: "wait", body: "Esperar datos" },
+          ],
+          summary: "La empresa es sólida técnicamente pero necesita modernizar su infraestructura de datos.",
+        },
+      }),
     },
   },
 }));
