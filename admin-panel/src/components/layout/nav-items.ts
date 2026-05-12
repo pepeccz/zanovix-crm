@@ -1,8 +1,10 @@
 import {
+  Building2,
   LayoutDashboard,
-  UserCheck,
-  Users,
   Settings,
+  UserCheck,
+  UserCog,
+  Users,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -17,6 +19,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  // Grupo trabajo
   {
     key: "nav.dashboard",
     href: "/dashboard",
@@ -31,16 +34,30 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     key: "nav.clients",
+    href: "/clients",
+    icon: Building2,
+    group: "trabajo",
+  },
+  {
+    key: "nav.leads",
     href: "/leads",
     icon: UserCheck,
     group: "trabajo",
   },
+  // Grupo personas
   {
     key: "nav.team",
-    href: "/users",
+    href: "/team",
     icon: Users,
     group: "personas",
   },
+  {
+    key: "nav.users",
+    href: "/users",
+    icon: UserCog,
+    group: "personas",
+  },
+  // Grupo recurrentes
   {
     key: "nav.settings",
     href: "/settings",

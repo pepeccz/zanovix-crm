@@ -3,10 +3,12 @@
     "dashboard": "Dashboard",
     "pipeline": "Pipeline",
     "clients": "Clients",
+    "leads": "Leads",
     "services": "Services",
     "billing": "Billing",
     "calendar": "Calendar",
     "team": "Team",
+    "users": "Users",
     "settings": "Settings",
     "my_diagnostic": "My diagnostic",
     "projects": "Projects",
@@ -166,8 +168,24 @@
       "lede": "Synced with Google Workspace. Discovery, diagnostic sessions, training."
     },
     "team": {
+      "eyebrow": "team",
       "title": "Team",
-      "lede": "Consultants and developers with ecosystem access."
+      "lede": "Who is doing what.",
+      "metric": {
+        "clients": "Clients",
+        "services": "Active services",
+        "load": "Load",
+        "loadPlaceholder": "Coming soon"
+      },
+      "role": {
+        "admin": "Founder · admin",
+        "consultor": "Consultant",
+        "comercial": "Commercial"
+      },
+      "empty": {
+        "title": "No team members",
+        "description": "No team members yet."
+      }
     },
     "cportal": {
       "title": "Welcome to the ecosystem",
