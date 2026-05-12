@@ -188,3 +188,43 @@ class MessageNotFoundError(Exception):
     def __init__(self, message_id: object | None = None) -> None:
         self.message_id = message_id
         super().__init__(f"Message not found: {message_id}")
+
+
+# ---------------------------------------------------------------------------
+# Billing-profile exceptions (lead-role-billing-profiles slice)
+# ---------------------------------------------------------------------------
+
+
+class BillingProfileNotFoundError(Exception):
+    """Raised when a BillingProfile cannot be found by the given ID.
+
+    Maps to HTTP 404.
+    """
+
+    def __init__(self, profile_id: object | None = None) -> None:
+        self.profile_id = profile_id
+        super().__init__(f"Billing profile not found: {profile_id}")
+
+
+class DuplicateTaxIdError(Exception):
+    """Raised when a tax_id already exists for this client (unique per client).
+
+    Maps to HTTP 409 Conflict — this is a state conflict, not a format error.
+    """
+
+    def __init__(self, client_id: object | None = None, tax_id: str | None = None) -> None:
+        self.client_id = client_id
+        self.tax_id = tax_id
+        super().__init__(f"Duplicate tax_id '{tax_id}' for client {client_id}")
+
+
+class CannotDeleteOnlyDefaultError(Exception):
+    """Raised when deleting the only billing profile a client has.
+
+    A client must always have at least one billing profile once created.
+    Maps to HTTP 409 Conflict.
+    """
+
+    def __init__(self, profile_id: object | None = None) -> None:
+        self.profile_id = profile_id
+        super().__init__(f"Cannot delete the only billing profile: {profile_id}")

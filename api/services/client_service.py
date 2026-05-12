@@ -32,6 +32,7 @@ from api.services.exceptions import (
     LeadNotQualifiedError,
 )
 from database.models.activity_log import ActivityLog
+from database.models.billing_profile import BillingProfile
 from database.models.client import Client
 from database.models.contact import Contact
 from database.models.lead import Lead
@@ -116,6 +117,8 @@ class ClientService:
         Raises:
             ClientNotFoundError: if not found or outside user's ownership scope.
         """
+        from database.models.billing_profile import BillingProfile  # local import avoids circular
+
         stmt = (
             select(Client)
             .where(Client.id == client_id)
@@ -123,6 +126,7 @@ class ClientService:
                 selectinload(Client.contacts),
                 selectinload(Client.services).selectinload(Service.milestones),
                 selectinload(Client.owner),
+                selectinload(Client.billing_profiles),
             )
         )
         if user.role in ("consultor", "comercial"):
@@ -325,10 +329,38 @@ class ClientService:
         self.session.add(client)
         await self.session.flush()
 
-        # Update lead linkage
-        lead.status = "converted"
-        lead.converted_client_id = client.id
+        # Step 3 (Option B): auto-create a primary Contact from lead data.
+        contact = Contact(
+            client_id=client.id,
+            name=lead.name,
+            email=lead.email,
+            phone=lead.phone,
+            role=lead.role,
+            is_primary=True,
+        )
+        self.session.add(contact)
         await self.session.flush()
+
+        # Step 4: create BillingProfile if provided (forced is_default=True — first profile).
+        if body.billing_profile is not None:
+            bp_payload = body.billing_profile
+            billing_profile = BillingProfile(
+                client_id=client.id,
+                legal_name=bp_payload.legal_name,
+                tax_id=bp_payload.tax_id,
+                tax_id_type=bp_payload.tax_id_type,
+                tax_regime=bp_payload.tax_regime,
+                address_line1=bp_payload.address_line1,
+                address_line2=bp_payload.address_line2,
+                city=bp_payload.city,
+                province=bp_payload.province,
+                postal_code=bp_payload.postal_code,
+                country=bp_payload.country,
+                billing_email=bp_payload.billing_email,
+                is_default=True,
+            )
+            self.session.add(billing_profile)
+            await self.session.flush()
 
         await activity_log_service.append_activity(
             self.session,
@@ -338,7 +370,22 @@ class ClientService:
             actor_user_id=actor_user_id,
         )
 
-        await self.session.refresh(client)
+        # Update lead linkage
+        lead.status = "converted"
+        lead.converted_client_id = client.id
+        await self.session.flush()
+
+        # Eager-load relationships for the response
+        stmt = (
+            select(Client)
+            .where(Client.id == client.id)
+            .options(
+                selectinload(Client.contacts),
+                selectinload(Client.billing_profiles),
+            )
+        )
+        client = (await self.session.execute(stmt)).scalar_one()
+
         logger.info(
             "lead_converted_to_client",
             extra={

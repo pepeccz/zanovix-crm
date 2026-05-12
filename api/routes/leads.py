@@ -35,6 +35,7 @@ from api.schemas.lead import (
     LeadListResponse,
     LeadRead,
     LeadStatusUpdate,
+    LeadUpdate,
 )
 from api.services.client_service import ClientService
 from api.services.exceptions import InvalidTransitionError, LeadNotFoundError
@@ -182,6 +183,38 @@ async def get_lead(
     lead = await service.get_for_user(current_user, lead_id)
     if lead is None:
         raise LeadNotFoundError(str(lead_id))
+    return LeadRead.model_validate(lead)
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/leads/{id}  — authenticated, editable fields (role, name, phone, etc.)
+# ---------------------------------------------------------------------------
+
+
+@router.patch(
+    "/leads/{lead_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=LeadRead,
+    summary="Update editable lead fields (authenticated, RBAC scoped)",
+)
+async def update_lead(
+    lead_id: uuid.UUID,
+    body: LeadUpdate,
+    session: AsyncSession = Depends(_get_session),
+    current_user: User = Depends(get_current_user),
+) -> LeadRead:
+    """
+    Partially update a lead's editable fields (name, phone, company, notes, role).
+
+    Does NOT accept status changes — use PATCH /leads/{id}/status for those.
+    RBAC: consultor/comercial can only update leads they own (404 on out-of-scope).
+    """
+    service = LeadService(session)
+    try:
+        lead = await service.update(current_user, lead_id, body)
+    except LeadNotFoundError:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    await session.commit()
     return LeadRead.model_validate(lead)
 
 

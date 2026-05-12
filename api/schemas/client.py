@@ -17,6 +17,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.schemas.activity_log import ActivityLogRead
+from api.schemas.billing_profile import BillingProfileRead
 from api.schemas.contact import ContactRead
 from api.schemas.service import ServiceStub
 
@@ -115,6 +116,7 @@ class ClientDetailResponse(BaseModel):
     lifetime_value_cents: int | None
     contacts: list[ContactRead]
     services: list[ServiceStub]
+    billing_profiles: list[BillingProfileRead]
     recent_activity: list[ActivityLogRead]
 
 

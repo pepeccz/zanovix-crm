@@ -33,9 +33,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from api.services.exceptions import (
+    BillingProfileNotFoundError,
     CannotCreateOnLostClientError,
+    CannotDeleteOnlyDefaultError,
     ClientNotFoundError,
     ContactNotFoundError,
+    DuplicateTaxIdError,
     InvalidTransitionError,
     LeadAlreadyConvertedError,
     LeadNotFoundError,
@@ -214,6 +217,48 @@ async def _message_not_found_handler(request: Request, exc: MessageNotFoundError
 
 
 # ---------------------------------------------------------------------------
+# Billing-profile handlers (lead-role-billing-profiles slice)
+# ---------------------------------------------------------------------------
+
+
+async def _billing_profile_not_found_handler(
+    request: Request, exc: BillingProfileNotFoundError
+) -> JSONResponse:
+    logger.info(
+        "billing_profile_not_found",
+        extra={"profile_id": str(exc.profile_id), "path": str(request.url.path)},
+    )
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Billing profile not found"},
+    )
+
+
+async def _duplicate_tax_id_handler(
+    request: Request, exc: DuplicateTaxIdError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error": "duplicate_tax_id",
+            "detail": f"A billing profile with tax_id '{exc.tax_id}' already exists for this client.",
+        },
+    )
+
+
+async def _cannot_delete_only_default_handler(
+    request: Request, exc: CannotDeleteOnlyDefaultError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error": "cannot_delete_only_default",
+            "detail": "Cannot delete the only billing profile for this client.",
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
 # Registration
 # ---------------------------------------------------------------------------
 
@@ -239,4 +284,9 @@ def register_domain_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(TicketNotFoundError, _ticket_not_found_handler)
     app.add_exception_handler(MessageNotFoundError, _message_not_found_handler)
 
-    logger.info("Registered domain error handlers (Lead + Client domain + Client-portal)")
+    # Billing-profile domain (lead-role-billing-profiles slice)
+    app.add_exception_handler(BillingProfileNotFoundError, _billing_profile_not_found_handler)
+    app.add_exception_handler(DuplicateTaxIdError, _duplicate_tax_id_handler)
+    app.add_exception_handler(CannotDeleteOnlyDefaultError, _cannot_delete_only_default_handler)
+
+    logger.info("Registered domain error handlers (Lead + Client domain + Client-portal + Billing)")

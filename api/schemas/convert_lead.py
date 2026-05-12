@@ -12,6 +12,8 @@ import uuid
 
 from pydantic import BaseModel, Field
 
+from api.schemas.billing_profile import BillingProfileCreate
+
 
 class ConvertLeadBody(BaseModel):
     """
@@ -20,6 +22,9 @@ class ConvertLeadBody(BaseModel):
     Absent fields default to corresponding lead fields:
       - name  → lead.company (or lead.name if company is None)
       - other → None (omitted from the client row)
+
+    billing_profile: when present, creates a BillingProfile linked to the new
+    client in the same atomic transaction (Option B, Design §5).
     """
 
     name: str | None = Field(default=None, max_length=200)
@@ -29,3 +34,4 @@ class ConvertLeadBody(BaseModel):
     owner_id: uuid.UUID | None = None
     mrr_cents: int | None = Field(default=None, ge=0)
     stage: str | None = None
+    billing_profile: BillingProfileCreate | None = None

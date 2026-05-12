@@ -79,5 +79,6 @@ class Lead(Base):
         ForeignKey("clients.id", ondelete="SET NULL"),
         nullable=True,
     )
+    role: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     owner: Mapped[User | None] = relationship("User", lazy="selectin")

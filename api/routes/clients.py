@@ -170,6 +170,7 @@ async def get_client(
         lifetime_value_cents=client.lifetime_value_cents,
         contacts=client.contacts,
         services=client.services,
+        billing_profiles=client.billing_profiles,
         recent_activity=recent_activity,
     )
 

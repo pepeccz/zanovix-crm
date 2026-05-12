@@ -22,6 +22,7 @@ from database.models.base import Base
 from database.models.user import User
 
 if TYPE_CHECKING:
+    from database.models.billing_profile import BillingProfile
     from database.models.contact import Contact
     from database.models.service import Service
 
@@ -80,4 +81,11 @@ class Client(Base):
     )
     services: Mapped[list[Service]] = relationship(
         "Service", back_populates="client", lazy="selectin"
+    )
+    billing_profiles: Mapped[list[BillingProfile]] = relationship(
+        "BillingProfile",
+        back_populates="client",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        lazy="selectin",
     )

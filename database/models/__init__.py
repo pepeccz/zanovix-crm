@@ -10,6 +10,7 @@ from database.models.milestone import Milestone
 from database.models.activity_log import ActivityLog
 from database.models.ticket import Ticket
 from database.models.message import Message
+from database.models.billing_profile import BillingProfile
 
 __all__ = [
     "Base",
@@ -22,4 +23,5 @@ __all__ = [
     "ActivityLog",
     "Ticket",
     "Message",
+    "BillingProfile",
 ]

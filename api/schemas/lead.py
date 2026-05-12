@@ -55,6 +55,17 @@ class LeadCreate(BaseModel):
     channel: LeadChannel
     source_url: str | None = Field(default=None, max_length=2048)
     notes: str | None = Field(default=None, max_length=2000)
+    role: str | None = Field(default=None, max_length=100)
+
+
+class LeadUpdate(BaseModel):
+    """Partial update for lead editable fields."""
+
+    name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    company: str | None = Field(default=None, max_length=255)
+    notes: str | None = Field(default=None, max_length=2000)
+    role: str | None = Field(default=None, max_length=100)
 
 
 class LeadStatusUpdate(BaseModel):
@@ -107,6 +118,7 @@ class LeadRead(BaseModel):
     notes: str | None
     status: str
     owner_id: uuid.UUID | None
+    role: str | None
 
 
 class LeadListResponse(BaseModel):

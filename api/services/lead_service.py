@@ -22,7 +22,7 @@ from api.domain.status_machine import (
     InvalidTransitionError as DomainInvalidTransitionError,
     LeadStatusMachine,
 )
-from api.schemas.lead import LeadCreate, LeadFilters
+from api.schemas.lead import LeadCreate, LeadFilters, LeadUpdate
 from api.services.exceptions import (
     InvalidTransitionError,
     LeadNotFoundError,
@@ -70,6 +70,7 @@ class LeadService:
             channel=payload.channel,
             source_url=str(payload.source_url) if payload.source_url else None,
             notes=payload.notes,
+            role=payload.role,
             raw_payload=raw_payload,
         )
         self.session.add(lead)
@@ -192,6 +193,25 @@ class LeadService:
                 "actor_role": user.role,
             },
         )
+        return lead
+
+    async def update(
+        self, user: User, lead_id: uuid.UUID, payload: LeadUpdate
+    ) -> Lead:
+        """
+        Partially update editable lead fields (name, phone, company, notes, role).
+
+        RBAC scoping: consultor/comercial can only update leads they own.
+
+        Raises:
+            LeadNotFoundError: lead not found or outside user's scope.
+        """
+        lead = await self.get_for_user(user, lead_id)
+        update_data = payload.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(lead, field, value)
+        await self.session.flush()
+        await self.session.refresh(lead)
         return lead
 
     async def assign_owner(self, lead_id: uuid.UUID, owner_id: uuid.UUID) -> Lead:
