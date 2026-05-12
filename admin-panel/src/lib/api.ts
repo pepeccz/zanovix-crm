@@ -136,11 +136,12 @@ class ApiClient {
     if (!response.ok) {
       if (response.status === 401) {
         this.setToken(null);
-        if (typeof window !== "undefined") {
+        // Only force a redirect when the user is NOT already on /login.
+        // Otherwise the auth-context's mount-time getMe() call loops:
+        //   /login -> getMe 401 -> location.href = /login -> reload -> repeat.
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
           const currentPath = window.location.pathname + window.location.search;
-          if (currentPath !== "/login") {
-            sessionStorage.setItem("returnTo", currentPath);
-          }
+          sessionStorage.setItem("returnTo", currentPath);
           window.location.href = "/login";
         }
       }
