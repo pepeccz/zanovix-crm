@@ -183,6 +183,39 @@ async def client_user(test_session_factory) -> User:
         return user
 
 
+@pytest.fixture(scope="session")
+async def client_user_b(test_session_factory) -> User:
+    """
+    A second client_user row persisted in the DB (session-scoped).
+
+    Used for cross-tenant RLS visibility tests. Mirrors ``client_user`` but
+    represents an entirely different portal account. ``client_id`` is set to
+    None at creation; ``test_client_for_portal_b`` updates it per test.
+    """
+    from sqlalchemy import select as sa_select
+
+    email = "client.portal.b.test@zanovix.test"
+    async with test_session_factory() as session:
+        stmt = sa_select(User).where(User.email == email)
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing is not None:
+            return existing
+
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            password_hash="$2b$12$test_placeholder_not_a_real_hash",
+            role="client_user",
+            display_name="Test Client Portal User B",
+            is_active=True,
+            client_id=None,
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
+
+
 @pytest.fixture
 async def test_client_for_portal(
     test_session_factory,
@@ -222,6 +255,45 @@ async def test_client_for_portal(
         client_user.client_id = portal_client.id
 
         return portal_client
+
+
+@pytest.fixture
+async def test_client_for_portal_b(
+    test_session_factory,
+    client_user_b: User,
+    cleanup_crm_rows,  # explicit dep ensures this runs AFTER pre-test cleanup
+) -> "Client":
+    """
+    A real Client row seeded fresh for each test for the *second* portal user.
+
+    Mirrors ``test_client_for_portal`` but belongs to ``client_user_b``.
+    Used in cross-tenant RLS tests to seed resources on client B and confirm
+    that client_user_A gets 404 when trying to access them.
+    """
+    from sqlalchemy import update as sa_update
+
+    async with test_session_factory() as session:
+        portal_client_b = Client(
+            id=uuid.uuid4(),
+            name="Portal Test Client B",
+            stage="active",
+        )
+        session.add(portal_client_b)
+        await session.flush()
+
+        # Keep client_user_b.client_id in sync so FK constraints are valid.
+        await session.execute(
+            sa_update(User)
+            .where(User.id == client_user_b.id)
+            .values(client_id=portal_client_b.id)
+        )
+        await session.commit()
+        await session.refresh(portal_client_b)
+
+        # Update in-memory object so callers see the new client_id.
+        client_user_b.client_id = portal_client_b.id
+
+        return portal_client_b
 
 
 # ---------------------------------------------------------------------------
@@ -331,6 +403,24 @@ def make_client_payload():
         return payload
 
     return _factory
+
+
+@pytest.fixture
+async def portal_client_a(client_user: User) -> AsyncGenerator[httpx.AsyncClient, None]:
+    """httpx.AsyncClient authenticated as client_user_a (portal user A)."""
+    role_app = make_role_app(client_user)
+    transport = httpx.ASGITransport(app=role_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+
+@pytest.fixture
+async def portal_client_b_http(client_user_b: User) -> AsyncGenerator[httpx.AsyncClient, None]:
+    """httpx.AsyncClient authenticated as client_user_b (portal user B)."""
+    role_app = make_role_app(client_user_b)
+    transport = httpx.ASGITransport(app=role_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
 
 
 @pytest.fixture
