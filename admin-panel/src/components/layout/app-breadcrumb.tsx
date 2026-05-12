@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
-
-const PATH_LABELS: Record<string, string> = {
-  dashboard:       "Dashboard",
-  leads:           "Leads",
-  users:           "Usuarios",
-  settings:        "Configuración",
-  config:          "General",
-  system:          "Sistema",
-  "admin-users":   "Administradores",
-};
+import { useTranslations } from "next-intl";
 
 function isUUID(segment: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -20,18 +11,46 @@ function isUUID(segment: string): boolean {
   );
 }
 
-function getSegmentLabel(segment: string): string {
-  if (isUUID(segment)) return "Detalle";
-  return (
-    PATH_LABELS[segment] ??
-    segment
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-  );
-}
-
 export function AppBreadcrumb() {
   const pathname = usePathname();
+  const tNav = useTranslations("nav");
+  const tSettings = useTranslations("page.settings");
+  const tBreadcrumb = useTranslations("breadcrumb");
+
+  // Mapping segments -> translation lookups
+  function getSegmentLabel(segment: string): string {
+    if (isUUID(segment)) {
+      // Generic detail label — could be expanded per-section if needed
+      return segment.slice(0, 8);
+    }
+    // nav.* covers top-level routes
+    const navKeys = [
+      "dashboard",
+      "pipeline",
+      "clients",
+      "leads",
+      "services",
+      "billing",
+      "calendar",
+      "team",
+      "users",
+      "settings",
+      "projects",
+      "documents",
+      "meetings",
+      "support",
+      "chat",
+    ];
+    if (navKeys.includes(segment)) {
+      return tNav(segment);
+    }
+    // settings sub-tabs
+    if (segment === "config") return tSettings("tabs.general");
+    if (segment === "system") return tSettings("tabs.system");
+    if (segment === "admin-users") return tSettings("tabs.admins");
+    // Fallback: capitalise
+    return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
 
   // Filtrar segmentos vacíos y grupos de rutas Next.js como (authenticated)
   const segments = pathname
@@ -57,7 +76,7 @@ export function AppBreadcrumb() {
       <Link
         href="/dashboard"
         className="hover:text-foreground transition-colors flex items-center"
-        aria-label="Inicio"
+        aria-label={tBreadcrumb("home")}
       >
         <Home className="h-3.5 w-3.5" />
       </Link>

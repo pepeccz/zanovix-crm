@@ -191,10 +191,10 @@ export default function PipelinePage() {
           onValueChange={(v) => setOwnerId(v === "all" ? "" : v)}
         >
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder={tClients("filter.allOwners")} />
+            <SelectValue placeholder={t("filter.allOwners")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{tClients("filter.allOwners")}</SelectItem>
+            <SelectItem value="all">{t("filter.allOwners")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -203,10 +203,10 @@ export default function PipelinePage() {
           onValueChange={(v) => setSector(v === "all" ? "" : v)}
         >
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder={tClients("filter.allSectors")} />
+            <SelectValue placeholder={t("filter.allSectors")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{tClients("filter.allSectors")}</SelectItem>
+            <SelectItem value="all">{t("filter.allSectors")}</SelectItem>
             {SECTORS.map((sec) => (
               <SelectItem key={sec} value={sec}>
                 {sec}

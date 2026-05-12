@@ -3,20 +3,21 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Settings, Server, UserCog } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/auth-context";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TabItem {
-  title: string;
+  titleKey: "general" | "system" | "admins";
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
 }
 
 const tabs: TabItem[] = [
-  { title: "General", href: "/settings/config", icon: Settings },
-  { title: "Sistema", href: "/settings/system", icon: Server },
-  { title: "Administradores", href: "/settings/admin-users", icon: UserCog, adminOnly: true },
+  { titleKey: "general", href: "/settings/config", icon: Settings },
+  { titleKey: "system", href: "/settings/system", icon: Server },
+  { titleKey: "admins", href: "/settings/admin-users", icon: UserCog, adminOnly: true },
 ];
 
 export default function SettingsLayout({
@@ -26,6 +27,7 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname();
   const { isAdmin } = useAuth();
+  const t = useTranslations("page.settings");
 
   const visibleTabs = tabs.filter((tab) => !tab.adminOnly || isAdmin);
 
@@ -33,10 +35,8 @@ export default function SettingsLayout({
     <div className="p-6 space-y-6">
       {/* Header compartido */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
-        <p className="text-muted-foreground">
-          Gestion del sistema, servicios y administradores
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("layoutTitle")}</h1>
+        <p className="text-muted-foreground">{t("layoutSubtitle")}</p>
       </div>
 
       {/* Navegacion por tabs usando Radix Tabs */}
@@ -49,7 +49,7 @@ export default function SettingsLayout({
                 <TabsTrigger key={tab.href} value={tab.href} asChild>
                   <Link href={tab.href}>
                     <Icon className="h-4 w-4 mr-2" />
-                    {tab.title}
+                    {t(`tabs.${tab.titleKey}`)}
                   </Link>
                 </TabsTrigger>
               );

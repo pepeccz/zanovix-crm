@@ -7,17 +7,17 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function UsersPage() {
-  const t = useTranslations();
+  const t = useTranslations("page.users");
 
   return (
     <PageContainer>
       <PageHeader
-        title={t("page.team.title")}
-        description={t("page.team.lede")}
+        title={t("title")}
+        description={t("lede")}
       />
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          Gestión de usuarios — próximamente
+          {t("comingSoon")}
         </CardContent>
       </Card>
     </PageContainer>

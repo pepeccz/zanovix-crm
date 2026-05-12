@@ -163,11 +163,26 @@
       "empty": {
         "column": "vacío"
       },
-      "drag_hint": "Arrastra tarjetas para mover de etapa"
+      "drag_hint": "Arrastra tarjetas para mover de etapa",
+      "filter": {
+        "allOwners": "Todos los responsables",
+        "allSectors": "Todos los sectores"
+      }
     },
-    "clients": {
-      "title": "Clientes y leads",
-      "lede": "Cada fila es una empresa que ha entrado o está entrando al ecosistema."
+    "leads": {
+      "eyebrow": "captación",
+      "title": "Leads",
+      "lede": "Conversaciones iniciales antes de pasar a discovery.",
+      "empty": {
+        "title": "Sin leads",
+        "description": "No hay leads que coincidan con los filtros."
+      }
+    },
+    "users": {
+      "eyebrow": "acceso",
+      "title": "Usuarios",
+      "lede": "Cuentas con acceso al panel interno.",
+      "comingSoon": "Gestión completa de usuarios — próximamente."
     },
     "billing": {
       "title": "Facturación",
@@ -216,7 +231,18 @@
     "settings": {
       "eyebrow": "ajustes",
       "title": "Configuración",
-      "subtitle": "Sistema y preferencias."
+      "subtitle": "Sistema y preferencias.",
+      "layoutTitle": "Configuración",
+      "layoutSubtitle": "Gestión del sistema, servicios y administradores.",
+      "tabs": {
+        "general": "General",
+        "system": "Sistema",
+        "admins": "Administradores"
+      },
+      "config": {
+        "title": "General",
+        "lede": "Configuración base del sistema."
+      }
     },
     "clients": {
       "eyebrow": "el ecosistema",
@@ -453,6 +479,14 @@
     "mrr": "MRR mantenimiento",
     "proposals": "Propuestas pendientes",
     "diagnostics": "Diagnósticos en curso"
+  },
+  "topbar": {
+    "userMenu": {
+      "signOut": "Cerrar sesión"
+    }
+  },
+  "breadcrumb": {
+    "home": "Inicio"
   },
   "google": {
     "synced": "Sincronizado con Google Workspace"

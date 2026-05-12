@@ -79,7 +79,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function LeadsPage() {
-  const t = useTranslations();
+  const t = useTranslations("page.leads");
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
@@ -124,8 +124,8 @@ export default function LeadsPage() {
   return (
     <PageContainer>
       <PageHeader
-        title={t("page.clients.title")}
-        description={t("page.clients.lede")}
+        title={t("title")}
+        description={t("lede")}
       />
 
       <Card>

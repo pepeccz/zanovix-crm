@@ -1,8 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { LocaleToggle } from "./locale-toggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function getInitials(name: string): string {
   return name
@@ -15,7 +24,7 @@ function getInitials(name: string): string {
 
 export function Topbar() {
   const t = useTranslations();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const displayName = user?.display_name ?? user?.email ?? "";
   const initials = getInitials(displayName);
@@ -26,13 +35,30 @@ export function Topbar() {
         {t("shell.view_internal")}
       </span>
       <LocaleToggle />
-      <div
-        aria-label={displayName || "user"}
-        title={displayName}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-zx-ink text-xs font-semibold text-zx-paper"
-      >
-        {initials || "?"}
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={displayName || "user"}
+            title={displayName}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-zx-ink text-xs font-semibold text-zx-paper outline-none focus:ring-2 focus:ring-zx-ink/40"
+          >
+            {initials || "?"}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[12rem]">
+          {displayName ? (
+            <DropdownMenuLabel className="truncate">
+              {displayName}
+            </DropdownMenuLabel>
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => logout()}>
+            <LogOut className="h-4 w-4" />
+            {t("topbar.userMenu.signOut")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

@@ -11,10 +11,10 @@ export default function ConfigPage() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader title={t("config.title")} description={t("config.lede")} />
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          Configuración del sistema — próximamente
+          {t("subtitle")}
         </CardContent>
       </Card>
     </PageContainer>

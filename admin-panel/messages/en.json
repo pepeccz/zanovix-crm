@@ -163,11 +163,26 @@
       "empty": {
         "column": "empty"
       },
-      "drag_hint": "Drag cards to change stage"
+      "drag_hint": "Drag cards to change stage",
+      "filter": {
+        "allOwners": "All owners",
+        "allSectors": "All sectors"
+      }
     },
-    "clients": {
-      "title": "Clients & leads",
-      "lede": "Each row is a company that has entered — or is entering — the ecosystem."
+    "leads": {
+      "eyebrow": "prospecting",
+      "title": "Leads",
+      "lede": "Early conversations before they reach discovery.",
+      "empty": {
+        "title": "No leads",
+        "description": "No leads match the current filters."
+      }
+    },
+    "users": {
+      "eyebrow": "access",
+      "title": "Users",
+      "lede": "Accounts with access to the internal panel.",
+      "comingSoon": "Full user management — coming soon."
     },
     "billing": {
       "title": "Billing",
@@ -216,7 +231,18 @@
     "settings": {
       "eyebrow": "settings",
       "title": "Settings",
-      "subtitle": "System and preferences."
+      "subtitle": "System and preferences.",
+      "layoutTitle": "Settings",
+      "layoutSubtitle": "System management, services and administrators.",
+      "tabs": {
+        "general": "General",
+        "system": "System",
+        "admins": "Admins"
+      },
+      "config": {
+        "title": "General",
+        "lede": "Base system configuration."
+      }
     },
     "clients": {
       "eyebrow": "the ecosystem",
@@ -453,6 +479,14 @@
     "mrr": "Maintenance MRR",
     "proposals": "Pending proposals",
     "diagnostics": "Diagnostics underway"
+  },
+  "topbar": {
+    "userMenu": {
+      "signOut": "Sign out"
+    }
+  },
+  "breadcrumb": {
+    "home": "Home"
   },
   "google": {
     "synced": "Synced with Google Workspace"
