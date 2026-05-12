@@ -72,7 +72,9 @@ class Client(Base):
     )
 
     # Relationships
-    owner: Mapped[User | None] = relationship("User", lazy="selectin")
+    owner: Mapped[User | None] = relationship(
+        "User", foreign_keys="Client.owner_id", lazy="selectin"
+    )
     contacts: Mapped[list[Contact]] = relationship(
         "Contact", back_populates="client", lazy="selectin"
     )
