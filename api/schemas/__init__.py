@@ -36,7 +36,7 @@ from api.schemas.service import (
     ServiceStub,
     ServiceUpdate,
 )
-from api.schemas.ticket import TicketCreate, TicketListResponse, TicketOut, TicketPatch
+from api.schemas.ticket import TicketCreate, TicketListResponse, TicketOut, TicketPatch, TicketUpdate
 
 __all__ = [
     # Activity log
@@ -86,6 +86,7 @@ __all__ = [
     # Ticket
     "TicketCreate",
     "TicketPatch",
+    "TicketUpdate",
     "TicketOut",
     "TicketListResponse",
 ]

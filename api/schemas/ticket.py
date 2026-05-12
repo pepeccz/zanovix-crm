@@ -62,6 +62,22 @@ class TicketPatch(BaseModel):
     body: str | None = None
 
 
+class TicketUpdate(BaseModel):
+    """
+    Partial update for an internal-facing ticket (PATCH /api/tickets/{id}).
+
+    Internal roles (admin / consultor) can change all fields including status
+    and assigned_to_user_id. Comercial can change title/priority/body/assigned_to
+    but NOT status — that restriction is enforced in the route handler.
+    """
+
+    title: str | None = Field(default=None, max_length=200)
+    priority: TicketPriority | None = None
+    status: TicketStatus | None = None
+    body: str | None = None
+    assigned_to_user_id: uuid.UUID | None = None
+
+
 # ---------------------------------------------------------------------------
 # Response schemas
 # ---------------------------------------------------------------------------

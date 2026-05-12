@@ -19,7 +19,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas.ticket import TicketCreate, TicketPatch
+from api.schemas.ticket import TicketCreate, TicketPatch, TicketUpdate
 from api.services import activity_log_service
 from api.services.exceptions import TicketNotFoundError
 from database.models.ticket import Ticket
@@ -197,6 +197,65 @@ class TicketService:
                 "client_id": str(ticket.client_id),
                 "actor_user_id": str(actor_user_id),
                 "fields": list(update_data.keys()),
+            },
+        )
+        return ticket
+
+    async def update_ticket_internal(
+        self,
+        ticket_id: uuid.UUID,
+        body: TicketUpdate,
+        *,
+        actor_user_id: uuid.UUID,
+    ) -> Ticket:
+        """
+        Patch a ticket from an internal role (admin / consultor / comercial).
+
+        Unlike update_ticket (client branch), this method:
+        - Applies NO client_id_filter — internal users see any ticket.
+        - Allows status and assigned_to_user_id changes.
+        - Logs ticket_closed when status transitions to 'closed', otherwise
+          ticket_updated for any other field change.
+
+        services flush; routes commit.
+
+        Raises:
+            TicketNotFoundError: ticket not found.
+        """
+        ticket = await self.get_ticket(ticket_id, client_id_filter=None)
+
+        update_data = body.model_dump(exclude_unset=True)
+        previous_status = ticket.status
+
+        for field, value in update_data.items():
+            setattr(ticket, field, value)
+
+        await self.session.flush()
+
+        # Determine activity kind: ticket_closed takes precedence
+        new_status = update_data.get("status")
+        if new_status == "closed" and previous_status != "closed":
+            activity_kind = "ticket_closed"
+        else:
+            activity_kind = "ticket_updated"
+
+        await activity_log_service.append_activity(
+            self.session,
+            client_id=ticket.client_id,
+            kind=activity_kind,
+            body=f"Ticket '{ticket.title}' {activity_kind.replace('_', ' ')} (fields: {list(update_data.keys())})",
+            actor_user_id=actor_user_id,
+        )
+
+        await self.session.refresh(ticket)
+        logger.info(
+            "ticket_updated_internal",
+            extra={
+                "ticket_id": str(ticket_id),
+                "client_id": str(ticket.client_id),
+                "actor_user_id": str(actor_user_id),
+                "fields": list(update_data.keys()),
+                "activity_kind": activity_kind,
             },
         )
         return ticket

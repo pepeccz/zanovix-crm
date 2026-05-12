@@ -39,7 +39,7 @@ from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from api.auth import get_current_user  # noqa: F401 — kept for backward compat imports
-from database.models import ActivityLog, Client, Contact, Milestone, Service
+from database.models import ActivityLog, Client, Contact, Message, Milestone, Service, Ticket
 from database.models.user import User
 from shared.config import get_settings
 from tests.integration._app_factory import make_role_app
@@ -161,6 +161,8 @@ async def _delete_crm_rows(session_factory) -> None:
         await session.execute(delete(ActivityLog))
         await session.execute(delete(Milestone))
         await session.execute(delete(Contact))
+        await session.execute(delete(Message))
+        await session.execute(delete(Ticket))
         await session.execute(delete(Service))
         await session.execute(text("DELETE FROM leads"))
         await session.execute(delete(Client))
