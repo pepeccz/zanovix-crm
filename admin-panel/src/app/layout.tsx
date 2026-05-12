@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Newsreader, League_Spartan, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
 import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
 import { SileoToaster } from "@/components/sileo-toaster";
@@ -51,6 +52,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const messages = await getMessages();
   return (
     <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${newsreader.variable} ${leagueSpartan.variable} ${jetbrains.variable}`}>
       <head>
@@ -61,10 +63,12 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <AuthProvider>
-          <SidebarProvider>{children}</SidebarProvider>
-        </AuthProvider>
-        <SileoToaster />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <SidebarProvider>{children}</SidebarProvider>
+          </AuthProvider>
+          <SileoToaster />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -431,5 +431,35 @@
   },
   "stripe": {
     "synced": "Stripe + bank transfer"
+  },
+  "page": {
+    "login": {
+      "eyebrowLeft": "the ecosystem",
+      "headlinePre": "AI applied,",
+      "headlineEm": "up close",
+      "headlinePost": ", for companies that prefer to understand before buying.",
+      "lede": "Your CRM, your portal and the conversation with your Zanovix team — all in one place. No more rented-feeling dashboards.",
+      "footerLocation": "MÁLAGA · SINCE 2024",
+      "footerSecure": "SECURE ACCESS · TLS 1.3",
+      "eyebrowRight": "welcome back",
+      "title": "Enter the ecosystem",
+      "subtitle": "Pick who you are and we'll take you there.",
+      "roleTeam": "I'm on the team",
+      "roleTeamSub": "Pepe, Clara, Diego…",
+      "roleClient": "I'm a client",
+      "roleClientSub": "Access your portal",
+      "email": "Email",
+      "emailPlaceholder": "you@zanovix.com",
+      "password": "Password",
+      "forgot": "Forgot it?",
+      "remember": "Remember me on this device",
+      "submit": "Sign in",
+      "loading": "Signing in…",
+      "divider": "or",
+      "google": "Continue with Google",
+      "footer": "No account? Ask Pepe for access.",
+      "privacy": "Privacy",
+      "comingSoon": "Coming soon."
+    }
   }
 }
