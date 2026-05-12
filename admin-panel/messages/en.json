@@ -119,8 +119,17 @@
       "lede": "What deserves your attention before eleven."
     },
     "pipeline": {
+      "eyebrow": "commercial",
       "title": "Commercial pipeline",
-      "lede": "From first conversation to entering the ecosystem."
+      "lede": "From first conversation to entering the ecosystem.",
+      "view": {
+        "kanban": "Kanban",
+        "list": "List"
+      },
+      "empty": {
+        "column": "empty"
+      },
+      "drag_hint": "Drag cards to change stage"
     },
     "clients": {
       "title": "Clients & leads",
@@ -211,6 +220,14 @@
       "cancel": "Cancel",
       "error": "Could not change stage"
     }
+  },
+  "stage": {
+    "lead": "Lead",
+    "discovery_scheduled": "Discovery booked",
+    "discovery_done": "Discovery done",
+    "proposal_sent": "Proposal sent",
+    "active": "Active client",
+    "lost": "Lost"
   },
   "kpi": {
     "pipeline": "Active pipeline",

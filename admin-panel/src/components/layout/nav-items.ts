@@ -3,6 +3,7 @@ import {
   UserCheck,
   Users,
   Settings,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,12 @@ export const NAV_ITEMS: NavItem[] = [
     key: "nav.dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    group: "trabajo",
+  },
+  {
+    key: "nav.pipeline",
+    href: "/pipeline",
+    icon: Workflow,
     group: "trabajo",
   },
   {
