@@ -115,8 +115,30 @@
   },
   "page": {
     "dashboard": {
-      "title": "Hoy en Zanovix",
-      "lede": "Lo que merece tu atención antes de las once."
+      "eyebrow": "zanovix · panel",
+      "title": "Hoy",
+      "lede": "Lo que merece tu atención antes de las once.",
+      "kpi": {
+        "mrr": "MRR activo",
+        "pipelineValue": "Valor en pipeline",
+        "dealsInMotion": "Tratos en movimiento",
+        "nextBilling": "Próximo cobro",
+        "nextBillingFootnote": "Disponible en el módulo de facturación."
+      },
+      "section": {
+        "funnel": "Embudo comercial",
+        "activity": "Actividad reciente"
+      },
+      "funnel": {
+        "empty": "Sin datos de embudo disponibles."
+      },
+      "activity": {
+        "empty": "Sin actividad reciente."
+      },
+      "error": {
+        "degraded": "Los datos de KPIs y embudo no están disponibles temporalmente.",
+        "activityFeed": "No se pudo cargar la actividad reciente."
+      }
     },
     "pipeline": {
       "eyebrow": "comercial",

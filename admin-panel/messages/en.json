@@ -115,8 +115,30 @@
   },
   "page": {
     "dashboard": {
-      "title": "Today at Zanovix",
-      "lede": "What deserves your attention before eleven."
+      "eyebrow": "zanovix · panel",
+      "title": "Today",
+      "lede": "What deserves your attention before eleven.",
+      "kpi": {
+        "mrr": "Active MRR",
+        "pipelineValue": "Pipeline value",
+        "dealsInMotion": "Deals in motion",
+        "nextBilling": "Next billing",
+        "nextBillingFootnote": "Available in the billing module."
+      },
+      "section": {
+        "funnel": "Commercial funnel",
+        "activity": "Recent activity"
+      },
+      "funnel": {
+        "empty": "No funnel data available."
+      },
+      "activity": {
+        "empty": "No recent activity."
+      },
+      "error": {
+        "degraded": "KPI and funnel data is temporarily unavailable.",
+        "activityFeed": "Could not load recent activity."
+      }
     },
     "pipeline": {
       "eyebrow": "commercial",
