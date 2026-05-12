@@ -6,7 +6,7 @@
 // Auth Types
 // ===========================================
 
-export type UserRole = "admin" | "consultor" | "comercial";
+export type UserRole = "admin" | "consultor" | "comercial" | "client_user";
 
 // Keep AdminRole as alias for backward compat with auth-context
 export type AdminRole = UserRole;
@@ -187,6 +187,7 @@ export interface ServiceRead {
   monthly_cents: number | null;
   score_int: number | null;
   milestones: MilestoneRead[];
+  diagnostic_json: Diagnostic | null;
 }
 
 export interface ActivityLogRead {
@@ -357,3 +358,87 @@ export const VALID_SERVICE_STATE_TRANSITIONS: Record<ServiceState, ServiceState[
   won: [],
   lost: [],
 };
+
+// ===========================================
+// Client Portal — Tickets
+// ===========================================
+
+export type TicketStatus = "pending" | "in_progress" | "closed";
+export type TicketPriority = "high" | "medium" | "low";
+
+export interface Ticket {
+  id: string;
+  client_id: string;
+  service_id: string | null;
+  title: string;
+  priority: TicketPriority;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TicketCreate {
+  title: string;
+  priority?: TicketPriority;
+  service_id?: string;
+}
+
+export interface TicketPatch {
+  title?: string;
+  priority?: TicketPriority;
+  status?: TicketStatus;
+}
+
+export interface TicketListResponse {
+  items: Ticket[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// ===========================================
+// Client Portal — Messages
+// ===========================================
+
+export interface Message {
+  id: string;
+  client_id: string;
+  sender_user_id: string | null;
+  sender_contact_id: string | null;
+  body: string;
+  created_at: string;
+}
+
+export interface MessageCreate {
+  body: string;
+}
+
+export interface MessageListResponse {
+  items: Message[];
+  total: number;
+}
+
+// ===========================================
+// Client Portal — Diagnostic
+// ===========================================
+
+export interface DiagnosticDimensions {
+  data: number;
+  processes: number;
+  team: number;
+  infrastructure: number;
+  compliance: number;
+  leadership: number;
+}
+
+export interface DiagnosticPlanItem {
+  title: string;
+  status: "go" | "wait" | "skip";
+  body: string;
+}
+
+export interface Diagnostic {
+  dimensions: DiagnosticDimensions;
+  plan: DiagnosticPlanItem[];
+  summary: string;
+}

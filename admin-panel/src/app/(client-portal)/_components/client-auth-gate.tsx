@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 
-export function AuthGate({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+export function ClientAuthGate({ children }: { children: React.ReactNode }) {
+  const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -20,9 +20,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // client_user has a dedicated portal — redirect them out of the internal panel
-    if (user?.role === "client_user") {
-      router.replace("/client");
+    // Internal users land here by mistake — send them to the internal panel
+    if (user?.role !== "client_user") {
+      router.replace("/dashboard");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
@@ -34,7 +34,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated || user?.role === "client_user") {
+  if (!isAuthenticated || user?.role !== "client_user") {
     return null;
   }
 

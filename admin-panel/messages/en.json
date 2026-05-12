@@ -21,7 +21,17 @@
   "sidebar": {
     "trabajo": "Work",
     "personas": "People",
-    "recurrentes": "Recurring"
+    "recurrentes": "Recurring",
+    "client": {
+      "dashboard": "Home",
+      "diagnostic": "Diagnostic",
+      "projects": "Projects",
+      "billing": "Billing",
+      "documents": "Documents",
+      "chat": "Messages",
+      "meetings": "Meetings",
+      "support": "Support"
+    }
   },
   "shell": {
     "switch_view": "Switch view",
@@ -275,9 +285,116 @@
       "emptyActivity": "No recent activity.",
       "viewClient": "View client",
       "errorLoad": "Failed to load service"
+    },
+    "client": {
+      "dashboard": {
+        "greeting": "hello, {name}",
+        "title": "Here's what we have together inside the ecosystem.",
+        "kpi": {
+          "activeServices": "Active services",
+          "nextMeeting": "Next meeting",
+          "nextMeetingFootnote": "Coming soon in Zanovix.",
+          "pendingPayment": "Outstanding",
+          "pendingPaymentFootnote": "Available in the billing module.",
+          "newDocs": "New documents",
+          "newDocsFootnote": "Available in the documents module."
+        },
+        "section": {
+          "services": "Your services",
+          "activity": "Latest from your team"
+        },
+        "sidepanel": {
+          "team": "Your Zanovix team",
+          "meetings": "Upcoming meetings",
+          "documents": "Recent documents"
+        }
+      },
+      "diagnostic": {
+        "eyebrow": "diagnostic",
+        "title": "Your AI Readiness Diagnostic",
+        "lede": "The map of where AI makes sense in your operation — and where it doesn't.",
+        "score": {
+          "outOf": "of 100 · average of 6 dimensions"
+        },
+        "section": {
+          "dimensions": "Dimensions",
+          "summary": "Executive summary",
+          "plan": "Prioritised plan"
+        },
+        "plan": {
+          "go": "Do now",
+          "wait": "Wait",
+          "skip": "Skip"
+        },
+        "cta": {
+          "proposal": "View proposal"
+        },
+        "empty": "No diagnostic available for this client."
+      },
+      "projects": {
+        "eyebrow": "your services",
+        "title": "What we're building with you",
+        "lede": "Each service has its own progress, milestones and team.",
+        "empty": "No active services at the moment."
+      },
+      "service_detail": {
+        "eyebrow": "service",
+        "section": {
+          "milestones": "Service milestones",
+          "activity": "Recent activity"
+        }
+      },
+      "billing": {
+        "eyebrow": "billing",
+        "title": "Your invoices",
+        "comingSoon": "Coming soon in Zanovix — billing module with Stripe."
+      },
+      "documents": {
+        "eyebrow": "documents",
+        "title": "Shared documents",
+        "comingSoon": "Coming soon in Zanovix — document and deliverable management."
+      },
+      "chat": {
+        "eyebrow": "messages",
+        "title": "Conversation with your team",
+        "lede": "Direct line to the Zanovix team. No intermediaries.",
+        "placeholder": "Write a message… (Enter to send)",
+        "send": "Send",
+        "empty": "No messages yet. Say hello.",
+        "today": "Today"
+      },
+      "meetings": {
+        "eyebrow": "meetings",
+        "title": "Upcoming meetings",
+        "comingSoon": "Coming soon in Zanovix — Google Calendar sync."
+      },
+      "support": {
+        "eyebrow": "support",
+        "title": "Support tickets",
+        "lede": "Something not right? Tell us and we'll sort it out.",
+        "newTicket": "New ticket",
+        "filter": {
+          "all": "All",
+          "pending": "Pending",
+          "in_progress": "In progress",
+          "closed": "Closed"
+        },
+        "empty": "No tickets match the current filter."
+      }
     }
   },
   "dialog": {
+    "newTicket": {
+      "title": "Open new ticket",
+      "fields": {
+        "title": "Subject",
+        "priority": "Priority",
+        "body": "Description (optional)"
+      },
+      "submit": "Submit ticket",
+      "cancel": "Cancel",
+      "error": "Could not create the ticket"
+    },
     "stageTransition": {
       "trigger": "Change stage",
       "title": "Change client stage",

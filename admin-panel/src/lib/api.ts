@@ -17,9 +17,13 @@ import type {
   ContactUpdate,
   ConvertLeadBody,
   CurrentUser,
+  Diagnostic,
   Lead,
   LeadListResponse,
   LeadStatus,
+  Message,
+  MessageCreate,
+  MessageListResponse,
   MilestoneCreate,
   MilestoneRead,
   MilestoneUpdate,
@@ -29,6 +33,11 @@ import type {
   ServiceState,
   ServiceType,
   ServiceUpdate,
+  Ticket,
+  TicketCreate,
+  TicketListResponse,
+  TicketPatch,
+  TicketStatus,
   UserListResponse,
 } from "./types";
 
@@ -460,6 +469,105 @@ class ApiClient {
     if (params.client_id) qs.set("client_id", params.client_id);
     const qStr = qs.toString();
     return this.request(`/api/activity${qStr ? `?${qStr}` : ""}`);
+  }
+
+  // ===========================================
+  // Client Portal — /api/me/* namespace
+  // ===========================================
+
+  me = {
+    /** GET /api/me/client — own client record */
+    getMyClient: (): Promise<ClientRead> =>
+      this.request("/api/me/client"),
+
+    /** GET /api/me/services — all services for own client */
+    getMyServices: (): Promise<ServiceListResponse> =>
+      this.request("/api/me/services"),
+
+    /** GET /api/me/services/{id} — single service (includes diagnostic_json) */
+    getMyService: (id: string): Promise<ServiceRead> =>
+      this.request(`/api/me/services/${id}`),
+
+    /** GET /api/me/services/{id}/diagnostic */
+    getMyDiagnostic: (serviceId: string): Promise<Diagnostic | null> =>
+      this.request(`/api/me/services/${serviceId}/diagnostic`),
+
+    /** GET /api/me/contacts */
+    getMyContacts: (): Promise<ContactRead[]> =>
+      this.request("/api/me/contacts"),
+
+    /** GET /api/me/activity */
+    getMyActivity: (params: ActivityFilters = {}): Promise<ActivityLogListResponse> => {
+      const qs = new URLSearchParams();
+      if (params.limit !== undefined) qs.set("limit", String(params.limit));
+      if (params.offset !== undefined) qs.set("offset", String(params.offset));
+      const qStr = qs.toString();
+      return this.request(`/api/me/activity${qStr ? `?${qStr}` : ""}`);
+    },
+
+    /** GET /api/me/messages?since=<iso> */
+    getMyMessages: (since?: string): Promise<MessageListResponse> => {
+      const qs = since ? `?since=${encodeURIComponent(since)}` : "";
+      return this.request(`/api/me/messages${qs}`);
+    },
+
+    /** POST /api/me/messages */
+    postMyMessage: (body: MessageCreate): Promise<Message> =>
+      this.request("/api/me/messages", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+
+    /** GET /api/me/tickets?status=<status> */
+    getMyTickets: (status?: TicketStatus): Promise<TicketListResponse> => {
+      const qs = status ? `?status=${status}` : "";
+      return this.request(`/api/me/tickets${qs}`);
+    },
+
+    /** POST /api/me/tickets */
+    postMyTicket: (body: TicketCreate): Promise<Ticket> =>
+      this.request("/api/me/tickets", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+
+    /** PATCH /api/me/tickets/{id} */
+    patchMyTicket: (id: string, body: TicketPatch): Promise<Ticket> =>
+      this.request(`/api/me/tickets/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+  };
+
+  // ===========================================
+  // Internal client portal helpers (admin/consultor)
+  // ===========================================
+
+  /** GET /api/clients/{id}/messages */
+  async getClientMessages(clientId: string): Promise<MessageListResponse> {
+    return this.request(`/api/clients/${clientId}/messages`);
+  }
+
+  /** POST /api/clients/{id}/messages */
+  async postClientMessage(clientId: string, body: MessageCreate): Promise<Message> {
+    return this.request(`/api/clients/${clientId}/messages`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /** GET /api/clients/{id}/tickets */
+  async getClientTickets(clientId: string, status?: TicketStatus): Promise<TicketListResponse> {
+    const qs = status ? `?status=${status}` : "";
+    return this.request(`/api/clients/${clientId}/tickets${qs}`);
+  }
+
+  /** PATCH /api/tickets/{id} (internal admin update) */
+  async patchTicket(id: string, body: TicketPatch): Promise<Ticket> {
+    return this.request(`/api/tickets/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
   }
 }
 
