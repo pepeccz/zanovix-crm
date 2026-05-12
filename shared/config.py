@@ -77,6 +77,12 @@ class Settings(BaseSettings):
     SEED_CONSULTOR_PASSWORD: str = Field(default="consultor123")
     SEED_COMERCIAL_PASSWORD: str = Field(default="comercial123")
 
+    # Feature flags
+    CLIENT_PORTAL_ENABLED: bool = Field(
+        default=True,
+        description="When False, /api/me/* routes are not mounted at startup.",
+    )
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -17,6 +17,8 @@ Handlers registered:
   LeadAlreadyConvertedError     → 409 {"error": "already_converted", "client_id": ...}
   LeadNotQualifiedError         → 422 {"error": "lead_not_qualified", "current_status": ...}
   RBACForbiddenError            → 403
+  TicketNotFoundError           → 404
+  MessageNotFoundError          → 404
 
 Usage:
     from api.errors import register_domain_error_handlers
@@ -38,10 +40,12 @@ from api.services.exceptions import (
     LeadAlreadyConvertedError,
     LeadNotFoundError,
     LeadNotQualifiedError,
+    MessageNotFoundError,
     MilestoneNotFoundError,
     RateLimitExceededError,
     RBACForbiddenError,
     ServiceNotFoundError,
+    TicketNotFoundError,
 )
 
 logger = logging.getLogger(__name__)
@@ -183,6 +187,33 @@ async def _rbac_forbidden_handler(request: Request, exc: RBACForbiddenError) -> 
 
 
 # ---------------------------------------------------------------------------
+# Client-portal handlers (crm-client-portal slice)
+# ---------------------------------------------------------------------------
+
+
+async def _ticket_not_found_handler(request: Request, exc: TicketNotFoundError) -> JSONResponse:
+    logger.info(
+        "ticket_not_found",
+        extra={"ticket_id": str(exc.ticket_id), "path": str(request.url.path)},
+    )
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Ticket not found"},
+    )
+
+
+async def _message_not_found_handler(request: Request, exc: MessageNotFoundError) -> JSONResponse:
+    logger.info(
+        "message_not_found",
+        extra={"message_id": str(exc.message_id), "path": str(request.url.path)},
+    )
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Message not found"},
+    )
+
+
+# ---------------------------------------------------------------------------
 # Registration
 # ---------------------------------------------------------------------------
 
@@ -204,4 +235,8 @@ def register_domain_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(LeadNotQualifiedError, _lead_not_qualified_handler)
     app.add_exception_handler(RBACForbiddenError, _rbac_forbidden_handler)
 
-    logger.info("Registered domain error handlers (Lead + Client domain)")
+    # Client-portal domain (crm-client-portal slice)
+    app.add_exception_handler(TicketNotFoundError, _ticket_not_found_handler)
+    app.add_exception_handler(MessageNotFoundError, _message_not_found_handler)
+
+    logger.info("Registered domain error handlers (Lead + Client domain + Client-portal)")

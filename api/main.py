@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from api.errors import register_domain_error_handlers
 from api.routes import admin
-from api.routes import activity, clients, contacts, leads, milestones, services
+from api.routes import activity, clients, contacts, leads, me, milestones, services
 from shared.config import get_settings
 from shared.logging_config import configure_logging
 from shared.fastapi_errors import register_error_handlers
@@ -64,6 +64,13 @@ def build_app() -> FastAPI:
     _app.include_router(contacts.router, prefix="/api")
     _app.include_router(services.router, prefix="/api")
     _app.include_router(milestones.router, prefix="/api")
+
+    # Client-portal routes — gated by CLIENT_PORTAL_ENABLED env flag (design §Migration/Rollout)
+    if settings.CLIENT_PORTAL_ENABLED:
+        _app.include_router(me.router, prefix="/api")
+        logger.info("client_portal_routes_mounted", extra={"prefix": "/api/me"})
+    else:
+        logger.info("client_portal_routes_disabled", extra={"reason": "CLIENT_PORTAL_ENABLED=false"})
 
     return _app
 

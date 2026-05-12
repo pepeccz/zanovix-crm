@@ -80,7 +80,7 @@ class ServiceStub(BaseModel):
 
 
 class ServiceRead(BaseModel):
-    """Full service representation with nested milestones."""
+    """Full service representation with nested milestones and diagnostic_json."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -98,6 +98,7 @@ class ServiceRead(BaseModel):
     setup_price_cents: int | None
     monthly_cents: int | None
     score_int: int | None
+    diagnostic_json: dict | None = None
     milestones: list[MilestoneRead]
 
 

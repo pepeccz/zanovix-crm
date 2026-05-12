@@ -159,3 +159,32 @@ class RBACForbiddenError(Exception):
         self.action = action
         self.role = role
         super().__init__(f"Role '{role}' is not permitted to perform '{action}'")
+
+
+# ---------------------------------------------------------------------------
+# Client-portal exceptions (crm-client-portal slice)
+# ---------------------------------------------------------------------------
+
+
+class TicketNotFoundError(Exception):
+    """Raised when a Ticket is not found, or falls outside the caller's client_id scope.
+
+    Using a single exception for both cases (not found + out-of-scope) is intentional:
+    it prevents leaking ticket existence across client boundaries (spec §404-on-out-of-scope).
+    Maps to HTTP 404.
+    """
+
+    def __init__(self, ticket_id: object | None = None) -> None:
+        self.ticket_id = ticket_id
+        super().__init__(f"Ticket not found: {ticket_id}")
+
+
+class MessageNotFoundError(Exception):
+    """Raised when a Message is not found, or falls outside the caller's client_id scope.
+
+    Maps to HTTP 404 (same existence-hiding policy as TicketNotFoundError).
+    """
+
+    def __init__(self, message_id: object | None = None) -> None:
+        self.message_id = message_id
+        super().__init__(f"Message not found: {message_id}")

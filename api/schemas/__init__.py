@@ -16,6 +16,7 @@ from api.schemas.client import (
 )
 from api.schemas.contact import ContactCreate, ContactRead, ContactUpdate
 from api.schemas.convert_lead import ConvertLeadBody
+from api.schemas.diagnostic import DiagnosticDimensions, DiagnosticPlanItem, DiagnosticRead
 from api.schemas.lead import (
     LeadAssign,
     LeadCreate,
@@ -24,6 +25,7 @@ from api.schemas.lead import (
     LeadRead,
     LeadStatusUpdate,
 )
+from api.schemas.message import MessageCreate, MessageListResponse, MessageOut
 from api.schemas.milestone import MilestoneCreate, MilestoneRead, MilestoneUpdate
 from api.schemas.service import (
     ServiceCreate,
@@ -34,6 +36,7 @@ from api.schemas.service import (
     ServiceStub,
     ServiceUpdate,
 )
+from api.schemas.ticket import TicketCreate, TicketListResponse, TicketOut, TicketPatch
 
 __all__ = [
     # Activity log
@@ -53,6 +56,10 @@ __all__ = [
     "ContactRead",
     # Convert lead
     "ConvertLeadBody",
+    # Diagnostic
+    "DiagnosticDimensions",
+    "DiagnosticPlanItem",
+    "DiagnosticRead",
     # Lead (existing)
     "LeadCreate",
     "LeadStatusUpdate",
@@ -60,6 +67,10 @@ __all__ = [
     "LeadFilters",
     "LeadRead",
     "LeadListResponse",
+    # Message
+    "MessageCreate",
+    "MessageOut",
+    "MessageListResponse",
     # Milestone
     "MilestoneCreate",
     "MilestoneUpdate",
@@ -72,4 +83,9 @@ __all__ = [
     "ServiceListResponse",
     "ServiceFilters",
     "ServiceStateChange",
+    # Ticket
+    "TicketCreate",
+    "TicketPatch",
+    "TicketOut",
+    "TicketListResponse",
 ]

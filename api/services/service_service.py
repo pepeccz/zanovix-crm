@@ -51,6 +51,73 @@ class ServiceService:
 
     # ─── Read ───────────────────────────────────────────────────────────────
 
+    async def list_for_client(
+        self,
+        *,
+        client_id_filter: uuid.UUID | None,
+        limit: int = 50,
+        offset: int = 0,
+        state: str | None = None,
+        type: str | None = None,
+    ) -> tuple[list[Service], int]:
+        """
+        Return a paginated list of services scoped to a client_id.
+
+        Used exclusively by /api/me/* endpoints (client_user branch).
+        When client_id_filter is not None, only services for that client are returned.
+        When None (internal branch calling this method), all services are returned.
+
+        # services flush; routes commit (read-only here).
+        """
+        stmt = select(Service).order_by(Service.created_at.desc())
+        count_stmt = select(func.count(Service.id))
+
+        if client_id_filter is not None:
+            stmt = stmt.where(Service.client_id == client_id_filter)
+            count_stmt = count_stmt.where(Service.client_id == client_id_filter)
+
+        if state is not None:
+            stmt = stmt.where(Service.state == state)
+            count_stmt = count_stmt.where(Service.state == state)
+
+        if type is not None:
+            stmt = stmt.where(Service.type == type)
+            count_stmt = count_stmt.where(Service.type == type)
+
+        stmt = stmt.limit(limit).offset(offset)
+
+        rows = (await self.session.execute(stmt)).scalars().all()
+        total = (await self.session.execute(count_stmt)).scalar_one()
+        return list(rows), total
+
+    async def get_for_client(
+        self,
+        service_id: uuid.UUID,
+        *,
+        client_id_filter: uuid.UUID | None,
+    ) -> Service:
+        """
+        Fetch a single service, applying client_id_filter when provided.
+
+        Out-of-scope or missing services raise ServiceNotFoundError (→ HTTP 404).
+        Eager-loads milestones for the service-detail endpoint.
+
+        Raises:
+            ServiceNotFoundError: service not found or outside caller's client scope.
+        """
+        stmt = (
+            select(Service)
+            .where(Service.id == service_id)
+            .options(selectinload(Service.milestones))
+        )
+        if client_id_filter is not None:
+            stmt = stmt.where(Service.client_id == client_id_filter)
+
+        service = (await self.session.execute(stmt)).scalar_one_or_none()
+        if service is None:
+            raise ServiceNotFoundError(service_id)
+        return service
+
     async def list_services(
         self,
         user: User,
