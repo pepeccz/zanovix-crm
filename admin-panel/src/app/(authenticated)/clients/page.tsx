@@ -31,6 +31,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
 import { FilterChip } from "@/components/shared/filter-chip";
 import { Pagination } from "@/components/shared/pagination";
+import { NewClientDialog } from "@/components/shared/new-client-dialog";
 
 const LIMIT = 25;
 
@@ -128,6 +129,7 @@ export default function ClientsPage() {
         eyebrow={t("eyebrow")}
         title={t("title")}
         lede={t("lede")}
+        right={<NewClientDialog onSuccess={fetchClients} />}
       />
 
       {/* Filter bar */}

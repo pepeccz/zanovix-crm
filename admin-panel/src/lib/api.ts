@@ -19,8 +19,10 @@ import type {
   CurrentUser,
   Diagnostic,
   Lead,
+  LeadChannel,
   LeadListResponse,
   LeadStatus,
+  LeadVertical,
   Message,
   MessageCreate,
   MessageListResponse,
@@ -263,6 +265,22 @@ class ApiClient {
 
   async getLead(id: string): Promise<Lead> {
     return this.request(`/api/leads/${id}`);
+  }
+
+  async createLead(body: {
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    vertical: LeadVertical;
+    channel: LeadChannel;
+    notes?: string;
+    source_url?: string;
+  }): Promise<Lead> {
+    return this.request("/api/leads", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   }
 
   async updateLeadStatus(id: string, status: LeadStatus): Promise<Lead> {

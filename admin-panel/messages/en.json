@@ -464,6 +464,120 @@
       "confirm": "Confirm",
       "cancel": "Cancel",
       "error": "Could not change state"
+    },
+    "newLead": {
+      "trigger": "New lead",
+      "title": "New lead",
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "company": "Company",
+        "vertical": "Vertical",
+        "channel": "Channel",
+        "notes": "Notes",
+        "source_url": "Source URL"
+      },
+      "vertical": {
+        "clinicas_dentales": "Dental Clinics",
+        "general": "General"
+      },
+      "channel": {
+        "email_marketing": "Email Marketing",
+        "cold_calling": "Cold Calling",
+        "networking": "Networking",
+        "referral": "Referral",
+        "web_form": "Web Form",
+        "other": "Other"
+      },
+      "submit": "Create lead",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "success": "Lead created",
+      "error": "Could not create the lead"
+    },
+    "convertLead": {
+      "trigger": "Convert",
+      "title": "Convert lead to client",
+      "description": "These fields are optional — leave blank to inherit from the lead.",
+      "fields": {
+        "name": "Client name",
+        "sector": "Sector",
+        "size": "Size",
+        "region": "Region",
+        "stage": "Initial stage",
+        "mrr": "MRR (€/month)"
+      },
+      "submit": "Convert",
+      "saving": "Converting…",
+      "cancel": "Cancel",
+      "success": "Lead converted",
+      "error": "Could not convert the lead",
+      "alreadyConverted": "This lead has already been converted.",
+      "mustBeQualified": "Lead must be in “Qualified” status before it can be converted.",
+      "notQualifiedTooltip": "Only qualified leads can be converted."
+    },
+    "newClient": {
+      "trigger": "New client",
+      "title": "New client",
+      "fields": {
+        "name": "Name",
+        "sector": "Sector",
+        "size": "Size",
+        "region": "Region",
+        "stage": "Stage",
+        "mrr": "MRR (€/month)"
+      },
+      "submit": "Create client",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "success": "Client created",
+      "error": "Could not create the client"
+    },
+    "newContact": {
+      "trigger": "Add contact",
+      "title": "New contact",
+      "fields": {
+        "name": "Name",
+        "role": "Role",
+        "email": "Email",
+        "phone": "Phone",
+        "is_primary": "Primary contact"
+      },
+      "submit": "Add contact",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "success": "Contact added",
+      "error": "Could not add the contact"
+    },
+    "newService": {
+      "trigger": "New service",
+      "title": "New service",
+      "fields": {
+        "title": "Title",
+        "type": "Type",
+        "setup_price": "Setup price (€)",
+        "monthly": "Monthly (€)"
+      },
+      "submit": "Create service",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "success": "Service created",
+      "error": "Could not create the service"
+    },
+    "newMilestone": {
+      "trigger": "Add milestone",
+      "title": "New milestone",
+      "fields": {
+        "n": "Nº",
+        "title": "Title",
+        "due_date": "Due date"
+      },
+      "submit": "Add milestone",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "success": "Milestone added",
+      "error": "Could not add the milestone"
     }
   },
   "stage": {

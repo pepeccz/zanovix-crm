@@ -464,6 +464,120 @@
       "confirm": "Confirmar",
       "cancel": "Cancelar",
       "error": "No se pudo cambiar el estado"
+    },
+    "newLead": {
+      "trigger": "Nuevo lead",
+      "title": "Nuevo lead",
+      "fields": {
+        "name": "Nombre",
+        "email": "Email",
+        "phone": "Teléfono",
+        "company": "Empresa",
+        "vertical": "Vertical",
+        "channel": "Canal",
+        "notes": "Notas",
+        "source_url": "URL de origen"
+      },
+      "vertical": {
+        "clinicas_dentales": "Clínicas Dentales",
+        "general": "General"
+      },
+      "channel": {
+        "email_marketing": "Email Marketing",
+        "cold_calling": "Cold Calling",
+        "networking": "Networking",
+        "referral": "Referido",
+        "web_form": "Formulario Web",
+        "other": "Otro"
+      },
+      "submit": "Crear lead",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Lead creado",
+      "error": "No se pudo crear el lead"
+    },
+    "convertLead": {
+      "trigger": "Convertir",
+      "title": "Convertir lead a cliente",
+      "description": "Estos campos son opcionales — si los dejas vacíos se heredan del lead.",
+      "fields": {
+        "name": "Nombre del cliente",
+        "sector": "Sector",
+        "size": "Tamaño",
+        "region": "Región",
+        "stage": "Etapa inicial",
+        "mrr": "MRR (€/mes)"
+      },
+      "submit": "Convertir",
+      "saving": "Convirtiendo…",
+      "cancel": "Cancelar",
+      "success": "Lead convertido",
+      "error": "No se pudo convertir el lead",
+      "alreadyConverted": "Este lead ya fue convertido previamente.",
+      "mustBeQualified": "El lead debe estar en estado «Calificado» antes de poder convertirse.",
+      "notQualifiedTooltip": "Solo se pueden convertir leads calificados."
+    },
+    "newClient": {
+      "trigger": "Nuevo cliente",
+      "title": "Nuevo cliente",
+      "fields": {
+        "name": "Nombre",
+        "sector": "Sector",
+        "size": "Tamaño",
+        "region": "Región",
+        "stage": "Etapa",
+        "mrr": "MRR (€/mes)"
+      },
+      "submit": "Crear cliente",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Cliente creado",
+      "error": "No se pudo crear el cliente"
+    },
+    "newContact": {
+      "trigger": "Añadir contacto",
+      "title": "Nuevo contacto",
+      "fields": {
+        "name": "Nombre",
+        "role": "Cargo",
+        "email": "Email",
+        "phone": "Teléfono",
+        "is_primary": "Contacto principal"
+      },
+      "submit": "Añadir contacto",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Contacto añadido",
+      "error": "No se pudo añadir el contacto"
+    },
+    "newService": {
+      "trigger": "Nuevo servicio",
+      "title": "Nuevo servicio",
+      "fields": {
+        "title": "Título",
+        "type": "Tipo",
+        "setup_price": "Precio inicial (€)",
+        "monthly": "Mensual (€)"
+      },
+      "submit": "Crear servicio",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Servicio creado",
+      "error": "No se pudo crear el servicio"
+    },
+    "newMilestone": {
+      "trigger": "Añadir hito",
+      "title": "Nuevo hito",
+      "fields": {
+        "n": "Nº",
+        "title": "Título",
+        "due_date": "Fecha objetivo"
+      },
+      "submit": "Añadir hito",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Hito añadido",
+      "error": "No se pudo añadir el hito"
     }
   },
   "stage": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { LogOut } from "lucide-react";
+import { LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { LocaleToggle } from "./locale-toggle";
 import {
@@ -41,9 +41,17 @@ export function Topbar() {
             type="button"
             aria-label={displayName || "user"}
             title={displayName}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-zx-ink text-xs font-semibold text-zx-paper outline-none focus:ring-2 focus:ring-zx-ink/40"
+            className="group flex items-center gap-2 rounded-[2px] border border-zx-rule bg-zx-paper px-2 py-1 outline-none transition-colors hover:bg-zx-paper-2 focus:ring-2 focus:ring-zx-ink/30"
           >
-            {initials || "?"}
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zx-ink text-[11px] font-semibold text-zx-paper">
+              {initials || "?"}
+            </span>
+            {displayName ? (
+              <span className="hidden font-sans text-[12px] text-zx-ink-soft md:inline-block max-w-[10rem] truncate">
+                {displayName.split(" ")[0]}
+              </span>
+            ) : null}
+            <ChevronDown className="h-3.5 w-3.5 text-zx-ink-mute transition-transform group-data-[state=open]:rotate-180" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[12rem]">

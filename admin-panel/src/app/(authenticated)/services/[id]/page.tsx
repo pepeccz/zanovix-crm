@@ -17,6 +17,7 @@ import { ServiceTypeBadge } from "@/components/shared/service-type-badge";
 import { ProgressBar } from "@/components/shared/progress-bar";
 import { ActivityTimelineItem } from "@/components/shared/activity-timeline-item";
 import { ServiceStateTransitionDialog } from "@/components/shared/service-state-transition-dialog";
+import { NewMilestoneDialog } from "@/components/shared/new-milestone-dialog";
 import { formatMonthly } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -162,10 +163,15 @@ export default function ServiceDetailPage() {
 
           {/* Section: Hitos */}
           <section className="border-b border-zx-rule">
-            <div className="px-10 py-5 border-b border-zx-rule/50">
+            <div className="px-10 py-5 border-b border-zx-rule/50 flex items-center justify-between">
               <h2 className="font-serif text-xl text-zx-ink">
                 {t("section.milestones")}
               </h2>
+              <NewMilestoneDialog
+                serviceId={service.id}
+                existingCount={service.milestones.length}
+                onSuccess={fetchService}
+              />
             </div>
 
             {service.milestones.length === 0 ? (

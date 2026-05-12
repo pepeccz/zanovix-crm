@@ -15,6 +15,8 @@ import { ServiceTypeBadge } from "@/components/shared/service-type-badge";
 import { ProgressBar } from "@/components/shared/progress-bar";
 import { ActivityTimelineItem } from "@/components/shared/activity-timeline-item";
 import { StageTransitionDialog } from "@/components/shared/stage-transition-dialog";
+import { NewContactDialog } from "@/components/shared/new-contact-dialog";
+import { NewServiceDialog } from "@/components/shared/new-service-dialog";
 import { cn } from "@/lib/utils";
 
 export default function ClientDetailPage() {
@@ -110,10 +112,11 @@ export default function ClientDetailPage() {
         <div className="border-r border-zx-rule">
           {/* Servicios activos */}
           <section className="border-b border-zx-rule">
-            <div className="px-10 py-5 border-b border-zx-rule/50">
+            <div className="px-10 py-5 border-b border-zx-rule/50 flex items-center justify-between">
               <h2 className="font-serif text-xl text-zx-ink">
                 {t("section.services")}
               </h2>
+              <NewServiceDialog clientId={client.id} onSuccess={fetchClient} />
             </div>
 
             {client.services.length === 0 ? (
@@ -182,9 +185,12 @@ export default function ClientDetailPage() {
 
         {/* Sidebar — Contactos */}
         <aside className="px-8 py-6">
-          <h2 className="font-serif text-xl text-zx-ink mb-4">
-            {t("section.contacts")}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-xl text-zx-ink">
+              {t("section.contacts")}
+            </h2>
+            <NewContactDialog clientId={client.id} onSuccess={fetchClient} />
+          </div>
 
           {client.contacts.length === 0 ? (
             <p className="font-serif italic text-sm text-zx-ink-mute">

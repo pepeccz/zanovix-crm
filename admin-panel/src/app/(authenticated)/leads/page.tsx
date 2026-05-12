@@ -32,6 +32,14 @@ import type { Lead, LeadStatus, LeadVertical, LeadChannel } from "@/lib/types";
 import { PageContainer } from "@/components/shared/page-container";
 import { PageHeader } from "@/components/shared/page-header";
 import { PaginationControls } from "@/components/shared/pagination-controls";
+import { NewLeadDialog } from "@/components/shared/new-lead-dialog";
+import { ConvertLeadDialog } from "@/components/shared/convert-lead-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const LIMIT = 50;
 
@@ -126,6 +134,7 @@ export default function LeadsPage() {
       <PageHeader
         title={t("title")}
         description={t("lede")}
+        right={<NewLeadDialog onSuccess={fetchLeads} />}
       />
 
       <Card>
@@ -226,7 +235,7 @@ export default function LeadsPage() {
                     <TableHead>Canal</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Propietario</TableHead>
-                    <TableHead className="w-[80px]">Acción</TableHead>
+                    <TableHead className="w-[160px]">Acción</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -266,13 +275,40 @@ export default function LeadsPage() {
                         )}
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/leads/${lead.id}`)}
-                        >
-                          Ver
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/leads/${lead.id}`)}
+                          >
+                            Ver
+                          </Button>
+                          {lead.status === "qualified" ? (
+                            <ConvertLeadDialog
+                              lead={lead}
+                              onSuccess={fetchLeads}
+                            />
+                          ) : (
+                            <TooltipProvider delayDuration={150}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled
+                                    >
+                                      Convertir
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Solo se pueden convertir leads calificados.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
