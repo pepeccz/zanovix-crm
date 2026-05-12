@@ -108,9 +108,10 @@ export type ServiceType = "assessment" | "development" | "formation";
 export type ServiceState =
   | "scoping"
   | "running"
-  | "delivered"
-  | "won"
-  | "lost";
+  | "review"
+  | "completed"
+  | "maintenance"
+  | "paused";
 
 export type ActivityKind =
   | "stage_change"
@@ -352,11 +353,12 @@ export const VALID_CLIENT_STAGE_TRANSITIONS: Record<ClientStage, ClientStage[]> 
 };
 
 export const VALID_SERVICE_STATE_TRANSITIONS: Record<ServiceState, ServiceState[]> = {
-  scoping: ["running", "lost"],
-  running: ["delivered", "lost"],
-  delivered: ["won", "lost"],
-  won: [],
-  lost: [],
+  scoping: ["running", "paused"],
+  running: ["review", "paused"],
+  review: ["running", "completed", "paused"],
+  completed: ["maintenance"],
+  maintenance: ["paused"],
+  paused: ["scoping", "running", "review"],
 };
 
 // ===========================================

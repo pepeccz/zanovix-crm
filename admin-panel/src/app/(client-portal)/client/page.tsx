@@ -116,7 +116,7 @@ export default function ClientDashboardPage() {
   }
 
   const activeCount = services.filter(
-    (s) => !["lost", "won"].includes(s.state)
+    (s) => s.state !== "paused"
   ).length;
 
   return (
