@@ -11,6 +11,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +29,11 @@ import {
 } from "@/components/ui/select";
 import { sileo } from "sileo";
 import api, { ApiError } from "@/lib/api";
-import type { ClientStage, Lead } from "@/lib/types";
+import type { BillingProfileCreate, ClientStage, Lead } from "@/lib/types";
+import {
+  BillingProfileForm,
+  type BillingProfileFormErrors,
+} from "@/components/billing/BillingProfileForm";
 
 interface ConvertLeadDialogProps {
   lead: Lead;
@@ -59,6 +69,14 @@ export function ConvertLeadDialog({
   const [stage, setStage] = useState<ClientStage>("lead");
   const [mrrEuros, setMrrEuros] = useState("");
 
+  // Billing profile accordion state
+  const [billingData, setBillingData] = useState<BillingProfileCreate | null>(
+    null
+  );
+  const [billingErrors, setBillingErrors] = useState<BillingProfileFormErrors>(
+    {}
+  );
+
   function reset() {
     setName(lead.company || lead.name);
     setSector("");
@@ -66,6 +84,8 @@ export function ConvertLeadDialog({
     setRegion("");
     setStage("lead");
     setMrrEuros("");
+    setBillingData(null);
+    setBillingErrors({});
   }
 
   function handleOpen(isOpen: boolean) {
@@ -76,6 +96,7 @@ export function ConvertLeadDialog({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSaving(true);
+    setBillingErrors({});
     try {
       const mrrCents = mrrEuros
         ? Math.round(parseFloat(mrrEuros) * 100)
@@ -87,6 +108,7 @@ export function ConvertLeadDialog({
         region: region.trim() || undefined,
         stage,
         mrr_cents: mrrCents,
+        billing_profile: billingData ?? undefined,
       });
       sileo.success({ title: t("success") });
       setOpen(false);
@@ -100,6 +122,30 @@ export function ConvertLeadDialog({
             description: t("alreadyConverted"),
           });
         } else if (err.status === 422) {
+          // Unwrap nested billing_profile.tax_id error path (R-D4)
+          const raw = err.original as Record<string, unknown> | null;
+          const detail = raw?.detail;
+          if (Array.isArray(detail)) {
+            const errors: BillingProfileFormErrors = {};
+            for (const item of detail as Array<{
+              loc?: string[];
+              msg?: string;
+            }>) {
+              if (item.loc && item.msg) {
+                // loc may be ["body","billing_profile","tax_id"] — take last segment
+                const field = item.loc[item.loc.length - 1];
+                errors[field] = item.msg;
+              }
+            }
+            if (Object.keys(errors).length > 0) {
+              setBillingErrors(errors);
+              sileo.error({
+                title: t("error"),
+                description: err.message,
+              });
+              return;
+            }
+          }
           sileo.error({
             title: t("error"),
             description: t("mustBeQualified"),
@@ -127,7 +173,7 @@ export function ConvertLeadDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
@@ -204,6 +250,31 @@ export function ConvertLeadDialog({
               placeholder="0.00"
             />
           </div>
+
+          {/* Billing profile accordion — collapsed by default */}
+          <Accordion type="single" collapsible className="border rounded-md px-3">
+            <AccordionItem value="billing" className="border-b-0">
+              <AccordionTrigger className="text-sm font-medium py-3">
+                {t("section.billing.title")}
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-xs text-zx-ink-mute mb-3">
+                  {t("section.billing.description")}
+                </p>
+                <BillingProfileForm
+                  defaultValues={{}}
+                  onSubmit={(data) => setBillingData(data)}
+                  onChange={(data) =>
+                    setBillingData(data as BillingProfileCreate)
+                  }
+                  mode="create"
+                  isSaving={isSaving}
+                  serverErrors={billingErrors}
+                  hideActions
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <DialogFooter>
             <Button

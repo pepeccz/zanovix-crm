@@ -277,14 +277,24 @@
       "section": {
         "contacts": "Contactos",
         "services": "Servicios activos",
-        "activity": "Actividad reciente"
+        "activity": "Actividad reciente",
+        "billing": "Facturación"
       },
       "actions": {
         "changeStage": "Cambiar etapa"
       },
       "emptyContacts": "Sin contactos registrados.",
       "emptyServices": "Aún sin servicios. La conversación está en pipeline.",
-      "emptyActivity": "Sin actividad reciente."
+      "emptyActivity": "Sin actividad reciente.",
+      "billing": {
+        "empty_state": "Sin perfiles de facturación. Añade uno para empezar.",
+        "add": "Añadir perfil",
+        "set_default": "Establecer por defecto",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "confirm_delete": "¿Eliminar este perfil de facturación? Esta acción no se puede deshacer.",
+        "default_badge": "Por defecto"
+      }
     },
     "service_detail": {
       "eyebrow": "servicio",
@@ -476,7 +486,8 @@
         "vertical": "Vertical",
         "channel": "Canal",
         "notes": "Notas",
-        "source_url": "URL de origen"
+        "source_url": "URL de origen",
+        "role": "Cargo / Rol"
       },
       "vertical": {
         "clinicas_dentales": "Clínicas Dentales",
@@ -508,6 +519,13 @@
         "stage": "Etapa inicial",
         "mrr": "MRR (€/mes)"
       },
+      "section": {
+        "billing": {
+          "title": "Datos de facturación",
+          "description": "Opcional — crea un perfil de facturación al convertir el lead.",
+          "toggle_label": "Añadir datos de facturación"
+        }
+      },
       "submit": "Convertir",
       "saving": "Convirtiendo…",
       "cancel": "Cancelar",
@@ -516,6 +534,50 @@
       "alreadyConverted": "Este lead ya fue convertido previamente.",
       "mustBeQualified": "El lead debe estar en estado «Calificado» antes de poder convertirse.",
       "notQualifiedTooltip": "Solo se pueden convertir leads calificados."
+    },
+    "newBillingProfile": {
+      "title": "Nuevo perfil de facturación",
+      "submit": "Crear perfil",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Perfil creado",
+      "error": "No se pudo crear el perfil"
+    },
+    "editBillingProfile": {
+      "title": "Editar perfil de facturación",
+      "submit": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "success": "Perfil actualizado",
+      "error": "No se pudo actualizar el perfil"
+    },
+    "billingProfileForm": {
+      "fields": {
+        "legal_name": "Razón social",
+        "tax_id_type": "Tipo de identificación",
+        "tax_id": "Número de identificación",
+        "tax_regime": "Régimen fiscal",
+        "address_line1": "Dirección (línea 1)",
+        "address_line2": "Dirección (línea 2)",
+        "city": "Ciudad",
+        "province": "Provincia",
+        "postal_code": "Código postal",
+        "country": "País (ISO-2)",
+        "billing_email": "Email de facturación"
+      },
+      "tax_id_type": {
+        "NIF": "NIF",
+        "CIF": "CIF",
+        "NIE": "NIE",
+        "VAT": "VAT (UE)"
+      },
+      "tax_regime": {
+        "general": "Régimen general",
+        "recargo_equivalencia": "Recargo de equivalencia",
+        "simplificado": "Régimen simplificado",
+        "exento": "Exento",
+        "intracomunitario": "Intracomunitario"
+      }
     },
     "newClient": {
       "trigger": "Nuevo cliente",
@@ -607,5 +669,15 @@
   },
   "stripe": {
     "synced": "Stripe + transferencia bancaria"
+  },
+  "errors": {
+    "billing": {
+      "duplicate_tax_id": "Ya existe un perfil con ese número de identificación para este cliente.",
+      "invalid_nif": "El NIF no es válido.",
+      "invalid_cif": "El CIF no es válido.",
+      "invalid_nie": "El NIE no es válido.",
+      "invalid_vat": "El VAT no tiene el formato correcto (ej. ESB12345674).",
+      "cannot_delete_only_default": "No se puede eliminar el único perfil de facturación."
+    }
   }
 }

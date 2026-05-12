@@ -6,6 +6,9 @@
 import type {
   ActivityFilters,
   ActivityLogListResponse,
+  BillingProfile,
+  BillingProfileCreate,
+  BillingProfileUpdate,
   ClientDetailResponse,
   ClientFilters,
   ClientListResponse,
@@ -272,6 +275,7 @@ class ApiClient {
     email: string;
     phone?: string;
     company?: string;
+    role?: string;
     vertical: LeadVertical;
     channel: LeadChannel;
     notes?: string;
@@ -294,6 +298,13 @@ class ApiClient {
     return this.request(`/api/leads/${id}/assign`, {
       method: "PATCH",
       body: JSON.stringify({ owner_id: ownerId }),
+    });
+  }
+
+  async updateLead(id: string, body: { role?: string | null }): Promise<Lead> {
+    return this.request(`/api/leads/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
     });
   }
 
@@ -474,6 +485,50 @@ class ApiClient {
     return this.request(`/api/leads/${leadId}/convert`, {
       method: "POST",
       body: JSON.stringify(body),
+    });
+  }
+
+  // ===========================================
+  // Billing Profile endpoints
+  // ===========================================
+
+  async listBillingProfiles(clientId: string): Promise<BillingProfile[]> {
+    return this.request(`/api/clients/${clientId}/billing-profiles`);
+  }
+
+  async createBillingProfile(
+    clientId: string,
+    body: BillingProfileCreate
+  ): Promise<BillingProfile> {
+    return this.request(`/api/clients/${clientId}/billing-profiles`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async getBillingProfile(id: string): Promise<BillingProfile> {
+    return this.request(`/api/billing-profiles/${id}`);
+  }
+
+  async updateBillingProfile(
+    id: string,
+    body: BillingProfileUpdate
+  ): Promise<BillingProfile> {
+    return this.request(`/api/billing-profiles/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
+  async deleteBillingProfile(id: string): Promise<void> {
+    return this.request(`/api/billing-profiles/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async setDefaultBillingProfile(id: string): Promise<BillingProfile> {
+    return this.request(`/api/billing-profiles/${id}/default`, {
+      method: "PATCH",
     });
   }
 

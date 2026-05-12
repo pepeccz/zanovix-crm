@@ -24,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Loader2, UserCog, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Loader2, UserCog, ChevronRight, Pencil, Check, X } from "lucide-react";
 import { sileo } from "sileo";
 import api from "@/lib/api";
 import type {
@@ -193,6 +194,9 @@ export default function LeadDetailPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showRawPayload, setShowRawPayload] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [isEditingRole, setIsEditingRole] = useState(false);
+  const [roleDraft, setRoleDraft] = useState("");
+  const [isSavingRole, setIsSavingRole] = useState(false);
 
   const fetchLead = useCallback(async () => {
     try {
@@ -234,6 +238,40 @@ export default function LeadDetailPage() {
     const updated = await api.assignLead(leadId, ownerId);
     setLead(updated);
     sileo.success({ title: "Lead asignado correctamente" });
+  }
+
+  function startEditRole() {
+    setRoleDraft(lead?.role ?? "");
+    setIsEditingRole(true);
+  }
+
+  function cancelEditRole() {
+    setIsEditingRole(false);
+    setRoleDraft("");
+  }
+
+  async function saveRole() {
+    if (!lead) return;
+    const trimmed = roleDraft.trim();
+    const next = trimmed.length === 0 ? null : trimmed;
+    if (next === (lead.role ?? null)) {
+      setIsEditingRole(false);
+      return;
+    }
+    setIsSavingRole(true);
+    try {
+      const updated = await api.updateLead(leadId, { role: next });
+      setLead(updated);
+      setIsEditingRole(false);
+      sileo.success({ title: "Cargo actualizado" });
+    } catch (error) {
+      sileo.error({
+        title: "Error al actualizar el cargo",
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsSavingRole(false);
+    }
   }
 
   if (isLoading) {
@@ -319,6 +357,61 @@ export default function LeadDetailPage() {
 
               <span className="text-muted-foreground">Empresa</span>
               <span>{lead.company || "—"}</span>
+
+              <span className="text-muted-foreground">Cargo / Rol</span>
+              {isEditingRole ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    value={roleDraft}
+                    onChange={(e) => setRoleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveRole();
+                      if (e.key === "Escape") cancelEditRole();
+                    }}
+                    disabled={isSavingRole}
+                    autoFocus
+                    placeholder="p. ej. Director de marketing"
+                    className="h-7 text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={saveRole}
+                    disabled={isSavingRole}
+                    aria-label="Guardar"
+                  >
+                    {isSavingRole ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={cancelEditRole}
+                    disabled={isSavingRole}
+                    aria-label="Cancelar"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <span className="flex items-center gap-2 group">
+                  <span>{lead.role || "—"}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={startEditRole}
+                    aria-label="Editar cargo"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                </span>
+              )}
 
               <span className="text-muted-foreground">URL origen</span>
               <span className="truncate">

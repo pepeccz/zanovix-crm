@@ -9,6 +9,7 @@ import { sileo } from "sileo";
 import api, { ApiError } from "@/lib/api";
 import type { ClientDetailResponse, ClientRead } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
 import { ServiceTypeBadge } from "@/components/shared/service-type-badge";
@@ -17,6 +18,8 @@ import { ActivityTimelineItem } from "@/components/shared/activity-timeline-item
 import { StageTransitionDialog } from "@/components/shared/stage-transition-dialog";
 import { NewContactDialog } from "@/components/shared/new-contact-dialog";
 import { NewServiceDialog } from "@/components/shared/new-service-dialog";
+import { BillingProfileList } from "@/components/billing/BillingProfileList";
+import { BillingProfileDialog } from "@/components/billing/BillingProfileDialog";
 import { cn } from "@/lib/utils";
 
 export default function ClientDetailPage() {
@@ -26,6 +29,7 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<ClientDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFoundError, setNotFoundError] = useState(false);
+  const [addBillingOpen, setAddBillingOpen] = useState(false);
 
   const fetchClient = useCallback(async () => {
     try {
@@ -244,6 +248,36 @@ export default function ClientDetailPage() {
               ))}
             </div>
           )}
+
+          {/* Facturación section */}
+          <div className="mt-8 pt-6 border-t border-zx-rule">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-xl text-zx-ink">
+                {t("section.billing")}
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => setAddBillingOpen(true)}
+              >
+                {t("billing.add")}
+              </Button>
+            </div>
+
+            <BillingProfileList
+              clientId={client.id}
+              profiles={client.billing_profiles ?? []}
+              onMutate={fetchClient}
+            />
+
+            <BillingProfileDialog
+              clientId={client.id}
+              open={addBillingOpen}
+              onOpenChange={setAddBillingOpen}
+              onSuccess={fetchClient}
+            />
+          </div>
 
           {/* Owner section */}
           {client.owner_id && (

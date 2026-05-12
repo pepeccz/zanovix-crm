@@ -48,6 +48,7 @@ export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
+  const [role, setRole] = useState("");
   const [vertical, setVertical] = useState<LeadVertical>("general");
   const [channel, setChannel] = useState<LeadChannel>("web_form");
   const [notes, setNotes] = useState("");
@@ -58,6 +59,7 @@ export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
     setEmail("");
     setPhone("");
     setCompany("");
+    setRole("");
     setVertical("general");
     setChannel("web_form");
     setNotes("");
@@ -78,6 +80,7 @@ export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
         email: email.trim(),
         phone: phone.trim() || undefined,
         company: company.trim() || undefined,
+        role: role.trim() || undefined,
         vertical,
         channel,
         notes: notes.trim() || undefined,
@@ -149,6 +152,16 @@ export function NewLeadDialog({ onSuccess }: NewLeadDialogProps) {
                 onChange={(e) => setCompany(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="lead-role">{t("fields.role")}</Label>
+            <Input
+              id="lead-role"
+              maxLength={100}
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

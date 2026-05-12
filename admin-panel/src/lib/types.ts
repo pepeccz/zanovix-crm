@@ -54,6 +54,7 @@ export interface Lead {
   notes: string | null;
   status: LeadStatus;
   owner_id: string | null;
+  role: string | null;
 }
 
 export interface LeadListResponse {
@@ -225,6 +226,7 @@ export interface ClientDetailResponse {
   contacts: ContactRead[];
   services: ServiceStub[];
   recent_activity: ActivityLogRead[];
+  billing_profiles: BillingProfile[];
 }
 
 // ===========================================
@@ -305,6 +307,67 @@ export interface ConvertLeadBody {
   owner_id?: string;
   mrr_cents?: number;
   stage?: ClientStage;
+  billing_profile?: BillingProfileCreate | null;
+}
+
+// ===========================================
+// Billing Profile Types
+// ===========================================
+
+export type TaxIdType = "NIF" | "CIF" | "NIE" | "VAT";
+export type TaxRegime =
+  | "general"
+  | "recargo_equivalencia"
+  | "simplificado"
+  | "exento"
+  | "intracomunitario";
+
+export interface BillingProfile {
+  id: string;
+  client_id: string;
+  legal_name: string;
+  tax_id: string;
+  tax_id_type: TaxIdType;
+  tax_regime: TaxRegime;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  billing_email: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BillingProfileCreate {
+  legal_name: string;
+  tax_id: string;
+  tax_id_type: TaxIdType;
+  tax_regime: TaxRegime;
+  address_line1: string;
+  address_line2?: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  billing_email?: string | null;
+  is_default?: boolean;
+}
+
+export interface BillingProfileUpdate {
+  legal_name?: string;
+  tax_id?: string;
+  tax_id_type?: TaxIdType;
+  tax_regime?: TaxRegime;
+  address_line1?: string;
+  address_line2?: string | null;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
+  billing_email?: string | null;
 }
 
 export interface ActivityFilters {

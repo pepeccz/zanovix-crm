@@ -277,14 +277,24 @@
       "section": {
         "contacts": "Contacts",
         "services": "Active services",
-        "activity": "Recent activity"
+        "activity": "Recent activity",
+        "billing": "Billing"
       },
       "actions": {
         "changeStage": "Change stage"
       },
       "emptyContacts": "No contacts on record.",
       "emptyServices": "No services yet. Conversation is in pipeline.",
-      "emptyActivity": "No recent activity."
+      "emptyActivity": "No recent activity.",
+      "billing": {
+        "empty_state": "No billing profiles. Add one to get started.",
+        "add": "Add profile",
+        "set_default": "Set as default",
+        "edit": "Edit",
+        "delete": "Delete",
+        "confirm_delete": "Delete this billing profile? This action cannot be undone.",
+        "default_badge": "Default"
+      }
     },
     "service_detail": {
       "eyebrow": "service",
@@ -476,7 +486,8 @@
         "vertical": "Vertical",
         "channel": "Channel",
         "notes": "Notes",
-        "source_url": "Source URL"
+        "source_url": "Source URL",
+        "role": "Role / Position"
       },
       "vertical": {
         "clinicas_dentales": "Dental Clinics",
@@ -496,26 +507,77 @@
       "success": "Lead created",
       "error": "Could not create the lead"
     },
-    "convertLead": {
-      "trigger": "Convert",
-      "title": "Convert lead to client",
-      "description": "These fields are optional — leave blank to inherit from the lead.",
-      "fields": {
-        "name": "Client name",
-        "sector": "Sector",
-        "size": "Size",
-        "region": "Region",
-        "stage": "Initial stage",
-        "mrr": "MRR (€/month)"
+    “convertLead”: {
+      “trigger”: “Convert”,
+      “title”: “Convert lead to client”,
+      “description”: “These fields are optional — leave blank to inherit from the lead.”,
+      “fields”: {
+        “name”: “Client name”,
+        “sector”: “Sector”,
+        “size”: “Size”,
+        “region”: “Region”,
+        “stage”: “Initial stage”,
+        “mrr”: “MRR (€/month)”
       },
-      "submit": "Convert",
-      "saving": "Converting…",
-      "cancel": "Cancel",
-      "success": "Lead converted",
-      "error": "Could not convert the lead",
-      "alreadyConverted": "This lead has already been converted.",
-      "mustBeQualified": "Lead must be in “Qualified” status before it can be converted.",
-      "notQualifiedTooltip": "Only qualified leads can be converted."
+      “section”: {
+        “billing”: {
+          “title”: “Billing details”,
+          “description”: “Optional — create a billing profile when converting this lead.”,
+          “toggle_label”: “Add billing details”
+        }
+      },
+      “submit”: “Convert”,
+      “saving”: “Converting…”,
+      “cancel”: “Cancel”,
+      “success”: “Lead converted”,
+      “error”: “Could not convert the lead”,
+      “alreadyConverted”: “This lead has already been converted.”,
+      “mustBeQualified”: “Lead must be in “Qualified” status before it can be converted.”,
+      “notQualifiedTooltip”: “Only qualified leads can be converted.”
+    },
+    “newBillingProfile”: {
+      “title”: “New billing profile”,
+      “submit”: “Create profile”,
+      “saving”: “Saving…”,
+      “cancel”: “Cancel”,
+      “success”: “Profile created”,
+      “error”: “Could not create the profile”
+    },
+    “editBillingProfile”: {
+      “title”: “Edit billing profile”,
+      “submit”: “Save changes”,
+      “saving”: “Saving…”,
+      “cancel”: “Cancel”,
+      “success”: “Profile updated”,
+      “error”: “Could not update the profile”
+    },
+    “billingProfileForm”: {
+      “fields”: {
+        “legal_name”: “Legal name”,
+        “tax_id_type”: “ID type”,
+        “tax_id”: “Tax ID”,
+        “tax_regime”: “Tax regime”,
+        “address_line1”: “Address (line 1)”,
+        “address_line2”: “Address (line 2)”,
+        “city”: “City”,
+        “province”: “Province”,
+        “postal_code”: “Postal code”,
+        “country”: “Country (ISO-2)”,
+        “billing_email”: “Billing email”
+      },
+      “tax_id_type”: {
+        “NIF”: “NIF”,
+        “CIF”: “CIF”,
+        “NIE”: “NIE”,
+        “VAT”: “VAT (EU)”
+      },
+      “tax_regime”: {
+        “general”: “General regime”,
+        “recargo_equivalencia”: “Surcharge on equivalence”,
+        “simplificado”: “Simplified regime”,
+        “exento”: “Exempt”,
+        “intracomunitario”: “Intra-EU”
+      }
     },
     "newClient": {
       "trigger": "New client",
@@ -607,5 +669,15 @@
   },
   "stripe": {
     "synced": "Stripe + bank transfer"
+  },
+  "errors": {
+    "billing": {
+      "duplicate_tax_id": "A profile with that tax ID already exists for this client.",
+      "invalid_nif": "The NIF is not valid.",
+      "invalid_cif": "The CIF is not valid.",
+      "invalid_nie": "The NIE is not valid.",
+      "invalid_vat": "The VAT number has the wrong format (e.g. ESB12345674).",
+      "cannot_delete_only_default": "Cannot delete the only billing profile."
+    }
   }
 }
